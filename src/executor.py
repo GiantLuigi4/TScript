@@ -1,6 +1,9 @@
 import random
-from errors import *
+
 import time
+
+import method_loader
+from errors import *
 
 
 def run(method_object):
@@ -12,9 +15,9 @@ def run(method_object):
             raise BadGoToError(
                 "Tried to execute non existent line "
                 + str(line)
-                + "in method "
+                + " in method "
                 + str(method_object.name)
-                + "coming from line "
+                + " coming from line "
                 + str(last_line)
             )
         last_line = line
@@ -24,7 +27,10 @@ def run(method_object):
             "Execution of method "
             + str(method_object.name)
             + " stopped at line "
-            + str(line) + " when said method only goes up to line "
+            + str(line)
+            + " comming from line "
+            + str(last_line)
+            + " when said method only goes up to line "
             + str(len(list(method)))
         )
 
@@ -67,7 +73,7 @@ def run_line(method, line):
     elif func.startswith('ifNotSkip>'):
         num = get_num(func.replace("ifNotSkip>", "", 1))
         if not parse_whole_condition(func.replace("ifNotSkip>", "", 1).replace(str(num) + ":", '', 1)):
-            return line - num
+            return line + num
     # REWIND IF CONDITION IS TRUE
     elif func.startswith('ifRewind>'):
         num = get_num(func.replace("ifRewind>", "", 1))
@@ -87,7 +93,7 @@ def run_line(method, line):
     elif func.startswith('ifSkip>'):
         num = get_num(func.replace("ifSkip>", "", 1))
         if parse_whole_condition(func.replace("ifSkip>", "", 1).replace(str(num) + ":", '', 1)):
-            return line - num
+            return line + num
     # WAIT
     elif func.startswith('wait:'):
         time.sleep(int(parse_value(func.replace('wait:', "")) / 1000))
@@ -100,6 +106,10 @@ def run_line(method, line):
     # WAIT SECONDS
     elif func.startswith('sleepSeconds:'):
         time.sleep(int(parse_value(func.replace('sleepSeconds:', ""))))
+    # TODO:Call another file based on the text in a variable
+    # CALL ANOTHER FILE
+    elif func.startswith('call:'):
+        method_loader.load_or_get(func.replace('call:', '')).execute()
     # EXIT
     elif func.startswith('exit'):
         if func.count(':') >= 1:
@@ -118,6 +128,7 @@ def handle_goto(text):
         return int(text)
     else:
         return int(parse_value(text))
+
 
 def get_num(line):
     num = 0
@@ -156,10 +167,10 @@ def parse_whole_condition(condition):
                 operator = '||'
             elif condition_val == 'and' or condition_val == '&&':
                 operator = '&&'
-            elif operator == '&&':
+            elif operator == '||':
                 operator = ''
                 val = val and parse_condition(condition_val)
-            elif operator == '||':
+            elif operator == '&&':
                 operator = ''
                 val = val or parse_condition(condition_val)
             else:

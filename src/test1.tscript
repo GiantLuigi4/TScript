@@ -1,5 +1,7 @@
+//Blob code, idk
 say:'hello'
-ifGoto>0:rand
-ifNotGoto>0:rand
+ifGoto>1:rand
+ifNotGoto>1:rand
 sayAndParse:rand=1-12
-goto:rand=1-2
+call:test3.tscript
+goto:rand=2-3

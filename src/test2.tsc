@@ -1,5 +1,6 @@
-ifGoto>3:rand
+//Indents are up to you, good idea to try to prevent the line from ever reaching comment lines, but this only needs to be acknowledged if you have lots of comment lines
+ifGoto>4:rand
    say:'condition is true'
-goto:0
+goto:1
    say:'condition is false'
-goto:0
+goto:1

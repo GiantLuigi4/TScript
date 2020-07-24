@@ -1,4 +1,4 @@
-from src import method_builder
+from src import method_loader
 
 # unbuiltClassDict = {
 #     "Object": {
@@ -49,7 +49,7 @@ from src import method_builder
 # ]
 
 # method_built = method_builder.build("test_method", test_method)
-method_built = method_builder.build_from_file("test1.tscript")
+method_built = method_loader.load_or_get("test1.tscript")
 
 method_built.execute()
 
