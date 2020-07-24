@@ -1,0 +1,5 @@
+ifGoto>3:rand
+   say:'condition is true'
+goto:0
+   say:'condition is false'
+goto:0

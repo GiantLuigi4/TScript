@@ -1,0 +1,5 @@
+say:'hello'
+ifGoto>0:rand
+ifNotGoto>0:rand
+sayAndParse:rand=1-12
+goto:rand=1-2
