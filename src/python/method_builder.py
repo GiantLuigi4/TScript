@@ -1,11 +1,11 @@
-from python import classes
+from python import method_class
 
 
 def build(name, data):
     list = []
     for methodText in data:
         list.append(methodText.lstrip())
-    method = classes.Method(name=name.replace("../", ''), function=list)
+    method = method_class.Method(name=name.replace("../", ''), function=list)
     return method
 
 

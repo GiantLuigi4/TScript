@@ -1,0 +1,8 @@
+say:'line:0'
+ifSkip>3:!r:(rand=0,100<=5)
+    say:'4!=5'
+    goto:0
+skip:3
+    say:'5==5'
+    goto:0
+currentFile

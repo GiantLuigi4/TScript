@@ -194,6 +194,8 @@ def parse_condition(condition):
     # RANDOM
     elif str(condition).replace('!', '') == 'random' or str(condition).replace('!', '') == 'rand':
         value = random.randrange(0, 2) == 1
+    elif str(condition.replace('!', '')).startswith('r:('):
+        value = resolve(condition.replace('!', '').replace('r:(', '').replace(')', ''))
     # NOT
     if str(condition).startswith('!'):
         return not value
@@ -202,14 +204,36 @@ def parse_condition(condition):
         return value
 
 
+def resolve(condition):
+    if condition.count('==') >= 1:
+        condition_split = condition.split('==', 1)
+        return parse_value(condition_split[0]) == parse_value(condition_split[1])
+    elif condition.count('>=') >= 1:
+        condition_split = condition.split('>=', 1)
+        return parse_value(condition_split[0]) >= parse_value(condition_split[1])
+    elif condition.count('<=') >= 1:
+        condition_split = condition.split('<=', 1)
+        return parse_value(condition_split[0]) <= parse_value(condition_split[1])
+    elif condition.count('>') >= 1:
+        condition_split = condition.split('>', 1)
+        return parse_value(condition_split[0]) > parse_value(condition_split[1])
+    elif condition.count('<') >= 1:
+        condition_split = condition.split('<', 1)
+        return parse_value(condition_split[0]) < parse_value(condition_split[1])
+    else:
+        return False
+
+
 def parse_value(text):
-    try:
-        return parse_number(text)
-    except:
-        try:
+    val = parse_number(text)
+    if val == "NAN":
+        val = parse_string(text)
+        if val == "NAS":
+            return val
+        else:
             return parse_whole_condition(text)
-        except:
-            return text
+    else:
+        return val
 
 
 number_type = type(0)
@@ -220,9 +244,9 @@ bool_type = type(True)
 def add(text1, text2):
     if type(text1) == type(text2):
         return text1 + text2
-    if type(text1) == str:
+    elif type(text1) == str:
         return text1 + str(text2)
-    if type(text2) == str:
+    elif type(text2) == str:
         return str(text1) + text2
 
 
@@ -230,9 +254,16 @@ def subtract(text1, text2):
     if type(text1) == number_type:
         if type(text2) == number_type:
             return text1 - text2
-    if str(text1).isnumeric():
+    elif str(text1).isnumeric():
         if str(text2).isnumeric():
             return int(text1) - int(text2)
+
+
+def parse_string(text):
+    if text.startswith('\'') and text.endswith('\''):
+        return text.replace('\'', '')
+    else:
+        return "NAS"
 
 
 def parse_number(text):
@@ -281,4 +312,4 @@ def parse_number(text):
         else:
             return random.randrange(0, int(range_list[0]) + 1)
     else:
-        raise RuntimeError("Tried to parse number out of text " + str(text))
+        return "NAN"
