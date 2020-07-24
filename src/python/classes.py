@@ -15,15 +15,3 @@ class Method:
 
     def __str__(self) -> str:
         return "Code="+str(self.list)+",Name="+str(self.name)
-
-
-class Clazz:
-    methodDict = {}
-    fieldDict = {}
-    name = ''
-
-    def run_method(self, name):
-        return (self.methodDict.get(name)).execute()
-
-    def __str__(self) -> str:
-        return "Methods="+str(self.methodDict)+",Fields="+str(self.fieldDict)+",Name="+str(self.name)
