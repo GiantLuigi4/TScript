@@ -2,8 +2,8 @@ import random
 
 import time
 
-import method_loader
-from errors import *
+from python import method_loader
+from python.errors import *
 
 
 def run(method_object):
@@ -21,7 +21,7 @@ def run(method_object):
                 + str(last_line)
             )
         last_line = line
-        line = run_line(method, line)
+        line = run_line(method, line, method_object)
     if line > len(list(method)):
         raise BadGoToError(
             "Execution of method "
@@ -35,27 +35,27 @@ def run(method_object):
         )
 
 
-def run_line(method, line):
+def run_line(method, line, method_object):
     # print(line)
     func = str(trim_line(str(method[line])))
     # REWIND
     if func.startswith('goBack:'):
-        return line - handle_goto(func.replace('goBack', ''))
+        return line - handle_goto(func.replace('goBack:', ''))
     # REWIND
     elif func.startswith('rewind:'):
-        return line - handle_goto(func.replace('rewind', ''))
+        return line - handle_goto(func.replace('rewind:', ''))
     # SKIP
     elif func.startswith('skip:'):
-        return line + handle_goto(func.replace('skip', ''))
+        return line + handle_goto(func.replace('skip:', ''))
     # SKIP
     elif func.startswith('goForward:'):
-        return line + handle_goto(func.replace('goForward', ''))
+        return line + handle_goto(func.replace('goForward:', ''))
     # GOTO
     elif func.startswith('goTo:'):
-        return handle_goto(func.replace('goTo', ''))
+        return handle_goto(func.replace('goTo:', ''))
     # GOTO
     elif func.startswith('goto:'):
-        return handle_goto(func.replace('goto', ''))
+        return handle_goto(func.replace('goto:', ''))
     # SAY
     elif func.startswith('say:\''):
         print(func.replace("say:'", "", 1).replace('\'', '', 1))
@@ -110,6 +110,9 @@ def run_line(method, line):
     # CALL ANOTHER FILE
     elif func.startswith('call:'):
         method_loader.load_or_get(func.replace('call:', '')).execute()
+    # PRINT EXECUTING FILE
+    elif func.startswith('currentFile'):
+        print("Current file: "+str(method_object.name))
     # EXIT
     elif func.startswith('exit'):
         if func.count(':') >= 1:

@@ -1,0 +1,20 @@
+//Blob code, idk
+say:'hello'
+//Loop back to line 1 if a value is true
+ifGoto>1:rand
+//Loop back to line 1 if a value is false
+ifNotGoto>1:rand
+//Say a random number from 1 to 12
+sayAndParse:rand=1-12
+//Call a file which just shows that the call method works.
+call:CallTest.tscript
+wait:2
+//Call an file with some example code for conditional code
+call:IndentsAndConditionalCode.tscr
+wait:2
+//Call an example of a poorly setup file that still works
+call:SkipAndBadGoto.tscript
+wait:2
+currentFile
+//create a forever loop
+goto:rand=2-3

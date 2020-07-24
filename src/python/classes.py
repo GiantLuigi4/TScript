@@ -1,4 +1,4 @@
-from src import executor
+from python import executor
 
 
 class Method:

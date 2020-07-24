@@ -1,7 +1,0 @@
-//Blob code, idk
-say:'hello'
-ifGoto>1:rand
-ifNotGoto>1:rand
-sayAndParse:rand=1-12
-call:test3.tscript
-goto:rand=2-3

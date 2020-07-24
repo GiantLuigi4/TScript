@@ -1,7 +1,0 @@
-//Example of skip system
-ifSkip>6:random or rand or random
-    say:'Did not skip, continuing to execute test3'
-    waitSeconds:1
-    goto:1
-say:'Skipped'
-//Because I'm skipping 6 lines from line 1, and the file is only 6 lines long, the existence of this line (regardless of weather or not it has text) prevents an error

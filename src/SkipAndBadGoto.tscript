@@ -1,0 +1,8 @@
+//Example of skip system
+ifSkip>7:random or rand
+    say:'Did not skip, continuing to execute.'
+    currentFile
+    waitSeconds:1
+    goto:1
+say:'Skipped'
+//Because I'm skipping 7 lines from line 1, and the file is only 7 lines long, the existence of this line (regardless of weather or not it has text) prevents an bad goto error

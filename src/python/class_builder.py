@@ -1,5 +1,5 @@
-from src.classes import Clazz
-from src.classes import Method
+from python.classes import Clazz
+from python.classes import Method
 
 
 def build(name, data):
