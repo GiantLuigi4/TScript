@@ -1,0 +1,17 @@
+goto:4
+//This one comes from Upcraft on MMD, and I put it in because honestly it was a stupid idea to not include it in the first place.
+//Link: https://discordapp.com/channels/176780432371744769/421377435041267712/736335499635195936
+//including a goto to the line after this because -2 lines per cycle is at least something
+say:'hello1'
+say:'hello2'
+say:'hello3'
+notify:gotoEnd
+say:'hello4'
+say:'hello5'
+say:'hello6'
+//UH-OH, no empty line like SkipAndRiskyGoto.tscript says to leave
+//Also, comments literally can be anything, so long as it's not recognized by the interpreter.
+//Though you should use "//" because that will literally never be recognized
+say:'hello7'
+say:'hello8'
+say:'hello9'

@@ -22,6 +22,8 @@ def run(method_object):
             )
         last_line = line
         line = run_line(method, line, method_object)
+        if line == "end":
+            return
     if line > len(list(method)):
         raise BadGoToError(
             "Execution of method "
@@ -36,76 +38,90 @@ def run(method_object):
 
 
 def run_line(method, line, method_object):
-    # print(line)
     func = str(trim_line(str(method[line])))
+    # NOTIFY
+    if func.startswith("notify:"):
+        func = func.replace("notify:", '', 1)
+        print("Hit line "+str(line)+" in method "+str(method_object.name)+".")
     # REWIND
     if func.startswith('goBack:'):
-        return line - handle_goto(func.replace('goBack:', ''))
+        return line - handle_goto(func.replace('goBack:', ''), method_object)
     # REWIND
     elif func.startswith('rewind:'):
-        return line - handle_goto(func.replace('rewind:', ''))
+        return line - handle_goto(func.replace('rewind:', ''), method_object)
     # SKIP
     elif func.startswith('skip:'):
-        return line + handle_goto(func.replace('skip:', ''))
+        return line + handle_goto(func.replace('skip:', ''), method_object)
     # SKIP
     elif func.startswith('goForward:'):
-        return line + handle_goto(func.replace('goForward:', ''))
+        return line + handle_goto(func.replace('goForward:', ''), method_object)
     # GOTO
     elif func.startswith('goTo:'):
-        return handle_goto(func.replace('goTo:', ''))
+        return handle_goto(func.replace('goTo:', ''), method_object)
     # GOTO
     elif func.startswith('goto:'):
-        return handle_goto(func.replace('goto:', ''))
+        return handle_goto(func.replace('goto:', ''), method_object)
     # SAY
     elif func.startswith('say:\''):
         print(func.replace("say:'", "", 1).replace('\'', '', 1))
         return line + 1
     # SAY
     elif func.startswith('sayAndParse:'):
-        print(parse_value(func.replace("sayAndParse:", "", 1)))
+        print(parse_value(func.replace("sayAndParse:", "", 1), method_object))
         return line + 1
     # REWIND IF CONDITION IS FALSE
     elif func.startswith('ifNotRewind>'):
         num = get_num(func.replace("ifNotRewind>", "", 1))
-        if not parse_whole_condition(func.replace("ifNotRewind>", "", 1).replace(str(num) + ":", '', 1)):
+        if not parse_whole_condition(func.replace("ifNotRewind>", "", 1).replace(str(num) + ":", '', 1), method_object):
             return line - num
     # SKIP IF CONDITION IS FALSE
     elif func.startswith('ifNotSkip>'):
         num = get_num(func.replace("ifNotSkip>", "", 1))
-        if not parse_whole_condition(func.replace("ifNotSkip>", "", 1).replace(str(num) + ":", '', 1)):
+        if not parse_whole_condition(func.replace("ifNotSkip>", "", 1).replace(str(num) + ":", '', 1), method_object):
             return line + num
+    # GOTO END IF CONDITION IS FALSE
+    elif func.startswith('ifNotGotoEnd>'):
+        num = get_num(func.replace("ifNotGotoEnd>", "", 1))
+        if not parse_whole_condition(
+                func.replace("ifNotGotoEnd>", "", 1).replace(str(num) + ":", '', 1), method_object):
+            return "end"
+    # GOTO END IF CONDITION IS TRUE
+    elif func.startswith('ifGotoEnd>'):
+        num = get_num(func.replace("ifGotoEnd>", "", 1))
+        if parse_whole_condition(func.replace("ifGotoEnd>", "", 1).replace(str(num) + ":", '', 1), method_object):
+            return "end"
     # REWIND IF CONDITION IS TRUE
     elif func.startswith('ifRewind>'):
         num = get_num(func.replace("ifRewind>", "", 1))
-        if parse_whole_condition(func.replace("ifRewind>", "", 1).replace(str(num) + ":", '', 1)):
+        if parse_whole_condition(func.replace("ifRewind>", "", 1).replace(str(num) + ":", '', 1), method_object):
             return line - num
     # GOTO IF CONDITION IS TRUE
     elif func.startswith('ifGoto>'):
         num = get_num(func.replace("ifGoto>", "", 1))
-        if parse_whole_condition(func.replace("ifGoto>", "", 1).replace(str(num) + ":", '', 1)):
+        if parse_whole_condition(func.replace("ifGoto>", "", 1).replace(str(num) + ":", '', 1), method_object):
             return num
     # GOTO IF CONDITION IS FALSE
     elif func.startswith('ifNotGoto>'):
         num = get_num(func.replace("ifNotGoto>", "", 1))
-        if not parse_whole_condition(func.replace("ifNotGoto>", "", 1).replace(str(num) + ":", '', 1)):
+        if not parse_whole_condition(func.replace("ifNotGoto>", "", 1).replace(str(num) + ":", '', 1), method_object):
             return num
     # SKIP IF CONDITION IS TRUE
     elif func.startswith('ifSkip>'):
         num = get_num(func.replace("ifSkip>", "", 1))
-        if parse_whole_condition(func.replace("ifSkip>", "", 1).replace(str(num) + ":", '', 1)):
+        if parse_whole_condition(func.replace("ifSkip>", "", 1).replace(str(num) + ":", '', 1), method_object):
             return line + num
     # WAIT
     elif func.startswith('wait:'):
-        time.sleep(int(parse_value(func.replace('wait:', "")) / 1000))
+        time.sleep(int(parse_value(func.replace('wait:', ""), method_object) / 1000))
     # WAIT
     elif func.startswith('sleep:'):
-        time.sleep(int(parse_value(func.replace('sleep:', "")) / 1000))
+        time.sleep(int(parse_value(func.replace('sleep:', ""), method_object) / 1000))
     # WAIT SECONDS
     elif func.startswith('waitSeconds:'):
-        time.sleep(int(parse_value(func.replace('waitSeconds:', ""))))
+        time.sleep(int(parse_value(func.replace('waitSeconds:', ""), method_object)))
     # WAIT SECONDS
     elif func.startswith('sleepSeconds:'):
-        time.sleep(int(parse_value(func.replace('sleepSeconds:', ""))))
+        time.sleep(int(parse_value(func.replace('sleepSeconds:', ""), method_object)))
     # TODO:Call another file based on the text in a variable
     # CALL ANOTHER FILE
     elif func.startswith('call:'):
@@ -115,10 +131,17 @@ def run_line(method, line, method_object):
         print("Current file: "+str(method_object.name))
     # EXIT
     elif func.startswith('exit'):
+        # Python ends programs by throwing an error, idk why.
         if func.count(':') >= 1:
             raise SystemExit(get_num(func.replace('exit:', '')))
         else:
             raise SystemExit(0)
+    # GOTO END OF SCRIPT
+    elif func.startswith("gotoEnd"):
+        return "end"
+    # GOTO END OF SCRIPT
+    elif func.startswith("goToEnd"):
+        return "end"
     return line + 1
 
 
@@ -126,11 +149,11 @@ def trim_line(line):
     return line.lstrip()
 
 
-def handle_goto(text):
+def handle_goto(text, method_object):
     if text.isnumeric():
         return int(text)
     else:
-        return int(parse_value(text))
+        return int(parse_value(text, method_object))
 
 
 def get_num(line):
@@ -156,7 +179,7 @@ def get_num(line):
         return int(-num)
 
 
-def parse_whole_condition(condition):
+def parse_whole_condition(condition, method_object):
     if str(condition) == 'true':
         return True
     elif str(condition) == 'false':
@@ -172,18 +195,22 @@ def parse_whole_condition(condition):
                 operator = '&&'
             elif operator == '||':
                 operator = ''
-                val = val and parse_condition(condition_val)
+                val = val and parse_condition(condition_val, method_object)
             elif operator == '&&':
                 operator = ''
-                val = val or parse_condition(condition_val)
+                val = val or parse_condition(condition_val, method_object)
             else:
-                val = parse_condition(condition_val)
+                val = parse_condition(condition_val, method_object)
         if type(val) == bool_type:
             return val
     raise RuntimeError("Tried to parse boolean out of text " + str(condition))
 
 
-def parse_condition(condition):
+def get_var(name, method_object):
+    return method_object.variables.get(name, "N\\A")
+
+
+def parse_condition(condition, method_object):
     value = False
     # TRUE
     if condition == 'true' or condition == '!true':
@@ -195,7 +222,7 @@ def parse_condition(condition):
     elif str(condition).replace('!', '') == 'random' or str(condition).replace('!', '') == 'rand':
         value = random.randrange(0, 2) == 1
     elif str(condition.replace('!', '')).startswith('r:('):
-        value = resolve(condition.replace('!', '').replace('r:(', '').replace(')', ''))
+        value = resolve(condition.replace('!', '').replace('r:(', '').replace(')', ''), method_object)
     # NOT
     if str(condition).startswith('!'):
         return not value
@@ -204,34 +231,42 @@ def parse_condition(condition):
         return value
 
 
-def resolve(condition):
+def resolve(condition, method_object):
     if condition.count('==') >= 1:
         condition_split = condition.split('==', 1)
-        return parse_value(condition_split[0]) == parse_value(condition_split[1])
+        return parse_value(condition_split[0], method_object) == parse_value(condition_split[1], method_object)
     elif condition.count('>=') >= 1:
         condition_split = condition.split('>=', 1)
-        return parse_value(condition_split[0]) >= parse_value(condition_split[1])
+        return parse_value(condition_split[0], method_object) >= parse_value(condition_split[1], method_object)
     elif condition.count('<=') >= 1:
         condition_split = condition.split('<=', 1)
-        return parse_value(condition_split[0]) <= parse_value(condition_split[1])
+        return parse_value(condition_split[0], method_object) <= parse_value(condition_split[1], method_object)
     elif condition.count('>') >= 1:
         condition_split = condition.split('>', 1)
-        return parse_value(condition_split[0]) > parse_value(condition_split[1])
+        return parse_value(condition_split[0], method_object) > parse_value(condition_split[1], method_object)
     elif condition.count('<') >= 1:
         condition_split = condition.split('<', 1)
-        return parse_value(condition_split[0]) < parse_value(condition_split[1])
+        return parse_value(condition_split[0], method_object) < parse_value(condition_split[1], method_object)
     else:
         return False
 
 
-def parse_value(text):
-    val = parse_number(text)
+def parse_value_full(text, method_object):
+    val = get_var(text, method_object)
+    if val != "N\\A":
+        return val
+    else:
+        return parse_value(text, method_object)
+
+
+def parse_value(text, method_object):
+    val = parse_number(text, method_object)
     if val == "NAN":
         val = parse_string(text)
         if val == "NAS":
             return val
         else:
-            return parse_whole_condition(text)
+            return parse_whole_condition(text, method_object)
     else:
         return val
 
@@ -266,7 +301,7 @@ def parse_string(text):
         return "NAS"
 
 
-def parse_number(text):
+def parse_number(text, method_object):
     if text.isnumeric():
         return int(text)
     # TIME NANO
@@ -308,8 +343,11 @@ def parse_number(text):
         elif text.count(',') >= 1:
             range_list = range_vals.split(',', 1)
         if len(range_list) > 1:
-            return random.randrange(int(range_list[0]), int(range_list[1]) + 1)
+            return random.randrange(
+                int(parse_value_full(range_list[0], method_object)),
+                int(parse_value_full(range_list[1], method_object)) + 1
+            )
         else:
-            return random.randrange(0, int(range_list[0]) + 1)
+            return random.randrange(0, int(parse_value_full(range_list[0], method_object)) + 1)
     else:
         return "NAN"

@@ -1,8 +1,11 @@
 say:'line:0'
-ifSkip>3:!r:(rand=0,100<=5)
+ifSkip>5:!r:(rand=0,100<=50)
     say:'4!=5'
+    say:''
     goto:0
 skip:3
     say:'5==5'
+    say:''
+    skip:2
     goto:0
 currentFile
