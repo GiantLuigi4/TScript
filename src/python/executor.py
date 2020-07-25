@@ -10,6 +10,7 @@ def run(method_object):
     method = method_object.list
     line = 0
     last_line = 0
+    labels = {}
     while line < len(list(method)):
         if line < 0:
             raise BadGoToError(
@@ -21,7 +22,7 @@ def run(method_object):
                 + str(last_line)
             )
         last_line = line
-        line = run_line(method, line, method_object)
+        line = run_line(method, line, method_object, labels)
         if line == "end":
             return
     if line > len(list(method)):
@@ -37,91 +38,118 @@ def run(method_object):
         )
 
 
-def run_line(method, line, method_object):
+def run_line(method, line, method_object, markers):
     func = str(trim_line(str(method[line])))
+    if len(func) == 0:
+        return line+1
     # NOTIFY
     if func.startswith("notify:"):
         func = func.replace("notify:", '', 1)
         print("Hit line "+str(line)+" in method "+str(method_object.name)+".")
     # REWIND
     if func.startswith('goBack:'):
-        return line - handle_goto(func.replace('goBack:', ''), method_object)
+        return line - handle_goto(func.replace('goBack:', ''), method_object, markers)
     # REWIND
     elif func.startswith('rewind:'):
-        return line - handle_goto(func.replace('rewind:', ''), method_object)
+        return line - handle_goto(func.replace('rewind:', ''), method_object, markers)
     # SKIP
     elif func.startswith('skip:'):
-        return line + handle_goto(func.replace('skip:', ''), method_object)
+        return line + handle_goto(func.replace('skip:', ''), method_object, markers)
     # SKIP
     elif func.startswith('goForward:'):
-        return line + handle_goto(func.replace('goForward:', ''), method_object)
+        return line + handle_goto(func.replace('goForward:', ''), method_object, markers)
     # GOTO
     elif func.startswith('goTo:'):
-        return handle_goto(func.replace('goTo:', ''), method_object)
+        return handle_goto(func.replace('goTo:', ''), method_object, markers)
     # GOTO
     elif func.startswith('goto:'):
-        return handle_goto(func.replace('goto:', ''), method_object)
+        return handle_goto(func.replace('goto:', ''), method_object, markers)
     # SAY
     elif func.startswith('say:\''):
         print(func.replace("say:'", "", 1).replace('\'', '', 1))
         return line + 1
     # SAY
     elif func.startswith('sayAndParse:'):
-        print(parse_value(func.replace("sayAndParse:", "", 1), method_object))
+        print(parse_value(func.replace("sayAndParse:", "", 1), method_object, markers))
         return line + 1
     # REWIND IF CONDITION IS FALSE
     elif func.startswith('ifNotRewind>'):
         num = get_num(func.replace("ifNotRewind>", "", 1))
-        if not parse_whole_condition(func.replace("ifNotRewind>", "", 1).replace(str(num) + ":", '', 1), method_object):
+        if not parse_whole_condition(func.replace("ifNotRewind>", "", 1).replace(str(num) + ":", '', 1), method_object,
+                                     markers):
             return line - num
     # SKIP IF CONDITION IS FALSE
     elif func.startswith('ifNotSkip>'):
         num = get_num(func.replace("ifNotSkip>", "", 1))
-        if not parse_whole_condition(func.replace("ifNotSkip>", "", 1).replace(str(num) + ":", '', 1), method_object):
+        if not parse_whole_condition(func.replace("ifNotSkip>", "", 1).replace(str(num) + ":", '', 1), method_object,
+                                     markers):
             return line + num
     # GOTO END IF CONDITION IS FALSE
     elif func.startswith('ifNotGotoEnd>'):
         num = get_num(func.replace("ifNotGotoEnd>", "", 1))
         if not parse_whole_condition(
-                func.replace("ifNotGotoEnd>", "", 1).replace(str(num) + ":", '', 1), method_object):
+                func.replace("ifNotGotoEnd>", "", 1).replace(str(num) + ":", '', 1), method_object, markers):
             return "end"
     # GOTO END IF CONDITION IS TRUE
     elif func.startswith('ifGotoEnd>'):
         num = get_num(func.replace("ifGotoEnd>", "", 1))
-        if parse_whole_condition(func.replace("ifGotoEnd>", "", 1).replace(str(num) + ":", '', 1), method_object):
+        if parse_whole_condition(func.replace("ifGotoEnd>", "", 1).replace(str(num) + ":", '', 1), method_object,
+                                 markers):
             return "end"
     # REWIND IF CONDITION IS TRUE
     elif func.startswith('ifRewind>'):
         num = get_num(func.replace("ifRewind>", "", 1))
-        if parse_whole_condition(func.replace("ifRewind>", "", 1).replace(str(num) + ":", '', 1), method_object):
+        if parse_whole_condition(func.replace("ifRewind>", "", 1).replace(str(num) + ":", '', 1), method_object,
+                                 markers):
             return line - num
     # GOTO IF CONDITION IS TRUE
     elif func.startswith('ifGoto>'):
         num = get_num(func.replace("ifGoto>", "", 1))
-        if parse_whole_condition(func.replace("ifGoto>", "", 1).replace(str(num) + ":", '', 1), method_object):
+        if parse_whole_condition(func.replace("ifGoto>", "", 1).replace(str(num) + ":", '', 1), method_object, markers):
             return num
+    # GOTO MARKER IF CONDITION IS TRUE
+    elif func.startswith('ifGotoMarker>'):
+        mark = get_marker_name(func.replace("ifGotoMarker>", "", 1))
+        if parse_whole_condition(func.replace("ifGotoMarker>", "", 1).replace(str(mark) + ":", '', 1), method_object,
+                                 markers):
+            marked_label = markers.get(func.replace("ifGotoMarker>:", '', 1), "N\\A")
+            if marked_label != "N\\A":
+                return marked_label
+            else:
+                return find_marker(mark, method, line, method_object.name)
+    # GOTO MARKER IF CONDITION IS FALSE
+    elif func.startswith('ifNotGotoMarker>'):
+        mark = get_marker_name(func.replace("ifNotGotoMarker>", "", 1))
+        if parse_whole_condition(func.replace("ifNotGotoMarker>", "", 1).replace(str(mark) + ":", '', 1), method_object,
+                                 markers):
+            marked_label = markers.get(func.replace("ifNotGotoMarker>:", '', 1), "N\\A")
+            if marked_label != "N\\A":
+                return marked_label
+            else:
+                return find_marker(mark, method, line, method_object.name)
     # GOTO IF CONDITION IS FALSE
     elif func.startswith('ifNotGoto>'):
         num = get_num(func.replace("ifNotGoto>", "", 1))
-        if not parse_whole_condition(func.replace("ifNotGoto>", "", 1).replace(str(num) + ":", '', 1), method_object):
+        if not parse_whole_condition(func.replace("ifNotGoto>", "", 1).replace(str(num) + ":", '', 1), method_object,
+                                     markers):
             return num
     # SKIP IF CONDITION IS TRUE
     elif func.startswith('ifSkip>'):
         num = get_num(func.replace("ifSkip>", "", 1))
-        if parse_whole_condition(func.replace("ifSkip>", "", 1).replace(str(num) + ":", '', 1), method_object):
+        if parse_whole_condition(func.replace("ifSkip>", "", 1).replace(str(num) + ":", '', 1), method_object, markers):
             return line + num
     # WAIT
     elif func.startswith('wait:'):
-        time.sleep(int(parse_value(func.replace('wait:', ""), method_object) / 1000))
+        time.sleep(int(parse_value(func.replace('wait:', ""), method_object, markers) / 1000))
     # WAIT
     elif func.startswith('sleep:'):
-        time.sleep(int(parse_value(func.replace('sleep:', ""), method_object) / 1000))
+        time.sleep(int(parse_value(func.replace('sleep:', ""), method_object, markers) / 1000))
     # WAIT SECONDS
     elif func.startswith('waitSeconds:'):
-        time.sleep(int(parse_value(func.replace('waitSeconds:', ""), method_object)))
+        time.sleep(int(parse_value(func.replace('waitSeconds:', ""), method_object, markers)))
     # WAIT SECONDS
     elif func.startswith('sleepSeconds:'):
-        time.sleep(int(parse_value(func.replace('sleepSeconds:', ""), method_object)))
+        time.sleep(int(parse_value(func.replace('sleepSeconds:', ""), method_object, markers)))
     # TODO:Call another file based on the text in a variable
     # CALL ANOTHER FILE
     elif func.startswith('call:'):
@@ -142,18 +170,72 @@ def run_line(method, line, method_object):
     # GOTO END OF SCRIPT
     elif func.startswith("goToEnd"):
         return "end"
+    elif func.startswith("mark:"):
+        marked_label = markers.get(func.replace("mark:", '', 1), "N\\A")
+        if marked_label != "N\\A":
+            raise DoubledMarker("Doubled marker on line " + str(line) + " of method " + str(method_object.name))
+        markers.update({func.replace("mark:", '', 1): line + 1})
+    elif func.startswith("gotoMark:"):
+        marked_label = markers.get(func.replace("gotoMark:", '', 1), "N\\A")
+        if marked_label != "N\\A":
+            return marked_label
+        else:
+            return find_marker(func.replace("gotoMark:", '', 1), method, line, method_object.name)
+    elif func.startswith("goToMark:"):
+        marked_label = markers.get(func.replace("goToMark:", '', 1), "N\\A")
+        if marked_label != "N\\A":
+            return marked_label
+        else:
+            return find_marker(func.replace("goToMark:", '', 1), method, line, method_object.name)
     return line + 1
+
+
+def find_marker(name, method, line_num, method_name):
+    i = 0
+    for line in method:
+        if line.startswith('notify:'):
+            line = line.replace('notify:', '', 1)
+        if line.startswith("mark:") and line.replace('mark:', '', 1) == name:
+            return i+1
+        i = i+1
+    raise RuntimeError(
+        "Line "
+        + str(line_num)
+        + " tried to goto non existent goto "
+        + str(name)
+        + " in method "
+        + str(method_name)
+    )
+
+
+def get_marker_name(text):
+    if text.startswith('ifGotoMarker>'):
+        text = text.replace('ifGotoMarker>', '', 1)
+    text_return = ""
+    is_end = False
+    i = 0
+    while not is_end:
+        if text[i] == ':':
+            is_end = True
+        else:
+            text_return = text_return+text[i]
+        i = i+1
+    return text_return
+
+
+def check_for_marker(name, markers):
+    return markers.get(name, "N\\A") != "N\\A"
 
 
 def trim_line(line):
     return line.lstrip()
 
 
-def handle_goto(text, method_object):
+def handle_goto(text, method_object, markers):
     if text.isnumeric():
         return int(text)
     else:
-        return int(parse_value(text, method_object))
+        return int(parse_value(text, method_object, markers))
 
 
 def get_num(line):
@@ -179,7 +261,7 @@ def get_num(line):
         return int(-num)
 
 
-def parse_whole_condition(condition, method_object):
+def parse_whole_condition(condition, method_object, markers):
     if str(condition) == 'true':
         return True
     elif str(condition) == 'false':
@@ -195,12 +277,12 @@ def parse_whole_condition(condition, method_object):
                 operator = '&&'
             elif operator == '||':
                 operator = ''
-                val = val and parse_condition(condition_val, method_object)
+                val = val and parse_condition(condition_val, method_object, markers)
             elif operator == '&&':
                 operator = ''
-                val = val or parse_condition(condition_val, method_object)
+                val = val or parse_condition(condition_val, method_object, markers)
             else:
-                val = parse_condition(condition_val, method_object)
+                val = parse_condition(condition_val, method_object, markers)
         if type(val) == bool_type:
             return val
     raise RuntimeError("Tried to parse boolean out of text " + str(condition))
@@ -210,7 +292,7 @@ def get_var(name, method_object):
     return method_object.variables.get(name, "N\\A")
 
 
-def parse_condition(condition, method_object):
+def parse_condition(condition, method_object, markers):
     value = False
     # TRUE
     if condition == 'true' or condition == '!true':
@@ -218,11 +300,13 @@ def parse_condition(condition, method_object):
     # FALSE
     elif condition == 'false' or condition == '!false':
         value = False
+    elif condition.replace('!', '', 1).startswith('checkMarker:'):
+        value = check_for_marker(condition.replace('!', '', 1).replace('checkMarker:', '', 1), markers)
     # RANDOM
-    elif str(condition).replace('!', '') == 'random' or str(condition).replace('!', '') == 'rand':
+    elif str(condition).replace('!', '', 1) == 'random' or str(condition).replace('!', '', 1) == 'rand':
         value = random.randrange(0, 2) == 1
-    elif str(condition.replace('!', '')).startswith('r:('):
-        value = resolve(condition.replace('!', '').replace('r:(', '').replace(')', ''), method_object)
+    elif str(condition.replace('!', '', 1)).startswith('r:('):
+        value = resolve(condition.replace('!', '', 1).replace('r:(', '', 1).replace(')', '', 1), method_object, markers)
     # NOT
     if str(condition).startswith('!'):
         return not value
@@ -231,42 +315,47 @@ def parse_condition(condition, method_object):
         return value
 
 
-def resolve(condition, method_object):
+def resolve(condition, method_object, markers):
     if condition.count('==') >= 1:
         condition_split = condition.split('==', 1)
-        return parse_value(condition_split[0], method_object) == parse_value(condition_split[1], method_object)
+        return parse_value(condition_split[0], method_object, markers) == parse_value(condition_split[1], method_object,
+                                                                                      markers)
     elif condition.count('>=') >= 1:
         condition_split = condition.split('>=', 1)
-        return parse_value(condition_split[0], method_object) >= parse_value(condition_split[1], method_object)
+        return parse_value(condition_split[0], method_object, markers) >= parse_value(condition_split[1], method_object,
+                                                                                      markers)
     elif condition.count('<=') >= 1:
         condition_split = condition.split('<=', 1)
-        return parse_value(condition_split[0], method_object) <= parse_value(condition_split[1], method_object)
+        return parse_value(condition_split[0], method_object, markers) <= parse_value(condition_split[1], method_object,
+                                                                                      markers)
     elif condition.count('>') >= 1:
         condition_split = condition.split('>', 1)
-        return parse_value(condition_split[0], method_object) > parse_value(condition_split[1], method_object)
+        return parse_value(condition_split[0], method_object, markers) > parse_value(condition_split[1], method_object,
+                                                                                     markers)
     elif condition.count('<') >= 1:
         condition_split = condition.split('<', 1)
-        return parse_value(condition_split[0], method_object) < parse_value(condition_split[1], method_object)
+        return parse_value(condition_split[0], method_object, markers) < parse_value(condition_split[1], method_object,
+                                                                                     markers)
     else:
         return False
 
 
-def parse_value_full(text, method_object):
+def parse_value_full(text, method_object, markers):
     val = get_var(text, method_object)
     if val != "N\\A":
         return val
     else:
-        return parse_value(text, method_object)
+        return parse_value(text, method_object, markers)
 
 
-def parse_value(text, method_object):
-    val = parse_number(text, method_object)
+def parse_value(text, method_object, markers):
+    val = parse_number(text, method_object, markers)
     if val == "NAN":
         val = parse_string(text)
-        if val == "NAS":
+        if val != "NAS":
             return val
         else:
-            return parse_whole_condition(text, method_object)
+            return parse_whole_condition(text, method_object, markers)
     else:
         return val
 
@@ -301,7 +390,7 @@ def parse_string(text):
         return "NAS"
 
 
-def parse_number(text, method_object):
+def parse_number(text, method_object, markers):
     if text.isnumeric():
         return int(text)
     # TIME NANO
@@ -344,10 +433,10 @@ def parse_number(text, method_object):
             range_list = range_vals.split(',', 1)
         if len(range_list) > 1:
             return random.randrange(
-                int(parse_value_full(range_list[0], method_object)),
-                int(parse_value_full(range_list[1], method_object)) + 1
+                int(parse_value_full(range_list[0], method_object, markers)),
+                int(parse_value_full(range_list[1], method_object, markers)) + 1
             )
         else:
-            return random.randrange(0, int(parse_value_full(range_list[0], method_object)) + 1)
+            return random.randrange(0, int(parse_value_full(range_list[0], method_object, markers)) + 1)
     else:
         return "NAN"

@@ -2,10 +2,10 @@ from python import method_class
 
 
 def build(name, data):
-    list = []
+    func_list = []
     for methodText in data:
-        list.append(methodText.lstrip())
-    method = method_class.Method(name=name.replace("../", ''), function=list)
+        func_list.append(methodText.lstrip())
+    method = method_class.Method(name=name.replace("../", ''), function=func_list)
     return method
 
 

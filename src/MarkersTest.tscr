@@ -1,0 +1,9 @@
+mark:test
+say:'hello'
+ifGotoMarker>killFunc:r:(rand=0,100<=25)
+gotoMark:test
+mark:hello
+say:' exit'
+exit
+mark:killFunc
+goToMark:hello

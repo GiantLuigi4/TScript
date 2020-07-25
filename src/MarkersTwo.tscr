@@ -1,0 +1,46 @@
+goto:12
+^ skip comments, as they cause minor lag
+Only using markers for this file
+Plain text because it's skipped, so I don't need to worry about it.
+This code is only executed once, so no marker
+Dense code is optimal due to the design of this language btw
+Empty lines won't affect performance too much however
+Anyway, this one comes from silk in MMD, but was explained by Uptake, also in MMD, links
+//https://discordapp.com/channels/176780432371744769/421377435041267712/736335635438108693
+//https://discordapp.com/channels/176780432371744769/421377435041267712/736335215584215131
+    v just making sure comments aren't called
+notify:waitSeconds:10
+say:'hi'
+//Skip past defining the start of the loop
+skip:4
+//Define the start of the loop
+mark:start loop
+    waitSeconds:1
+    say:'top of loop'
+    //No marker here, because it's a simple 1 line skip, not skipping this because it would take just as long to skip it as to actually run it
+    say:''
+    ifSkip>2:rand
+        say:'randomly skipped line'
+    say:'always run this line'
+    //Run this line 25% of the time
+    say:''
+    ifNotSkip>2:r:(rand=0-100<=25)
+        say:'25% chance to run this line'
+    //25% chance to run this line, then 25% to repeat with a 25% chance to rerun, continuing to the rewind statement which has a 25% chance to rewind
+    say:''
+    ifNotSkip>3:r:(rand=0-100<=25)
+        say:'Each time this is called, it has a 25% chance to print this line.'
+        say:'It has a 25% chance to get recalled regardless of if it printed.'
+        say:''
+    ifNotRewind>3:r:(rand=0-100<=25)
+    //This would throw an error on the second time through the loop if I didn't skip it when it already exists.
+    //Also, the marker's name CANNOT have a space, because it's being checked
+    ifGotoMarker>after_defined_once:checkMarker:defined_once
+        say:''
+        say:'Marker "defined_once" is not defined, defining it'
+        mark:defined_once
+    //Due to this only being accessed normally once, it is only defined once, thus no error will be thrown.
+    //The program will also run faster because it is actually accessed normally once.
+    mark:after_defined_once
+//Go back to the start of the loop
+gotoMark:start loop
