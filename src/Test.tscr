@@ -1,0 +1,32 @@
+//Define variable
+def:point,0
+
+//Mark loop
+mark:loop
+    //Set point to zero if it's greater than 10
+    ifNotSkip>2:r:(point>10)
+        m:point=0
+    say:''
+    //Define print point
+    def:print_point,0
+    //Unmark print loop to prevent error
+    unmark:print_loop
+    //Mark print loop
+    mark:print_loop
+        //Say "|" if iteration point is the same as the point in progression, else wise say " "
+        ifSkip>3:r:(point==print_point)
+            saynl:'|'
+        skip:2
+            saynl:' '
+        //Increment iteration point
+        print_point++
+    //Go back to start of print loop
+    ifGotoMarker>print_loop:r:(print_point<=10)
+    //Destroy print point
+    destroy:print_point
+    //Increment point
+    point++
+    //Pause for one second
+    waitSeconds:1
+//Go back to start
+gotoMark:loop

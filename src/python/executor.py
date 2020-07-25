@@ -47,8 +47,10 @@ def run_line(method, line, method_object, markers, variables):
     if func.startswith("notify:"):
         func = func.replace("notify:", '', 1)
         print("Hit line " + str(line) + " in method " + str(method_object.name) + ".")
+    if func.startswith('m:'):
+        math(func.replace('m:', '', 1), method_object, markers, variables)
     # REWIND
-    if func.startswith('goBack:'):
+    elif func.startswith('goBack:'):
         return line - handle_goto(func.replace('goBack:', ''), method_object, markers, variables)
     # REWIND
     elif func.startswith('rewind:'):
@@ -151,8 +153,8 @@ def run_line(method, line, method_object, markers, variables):
             return line + num
     # WAIT
     elif func.startswith('wait:'):
-        time.sleep(int(parse_value(func.replace('wait:', ""), method_object, markers, variables) / 1000))
-    # WAIT
+        time.sleep(int(parse_value(func.replace('sleep:', ""), method_object, markers, variables) / 1000))
+    # SLEEP (more precise version of wait)
     elif func.startswith('sleep:'):
         time.sleep(int(parse_value(func.replace('sleep:', ""), method_object, markers, variables) / 1000))
     # WAIT SECONDS
@@ -231,6 +233,24 @@ def run_line(method, line, method_object, markers, variables):
             name = func.replace('--', '', 1)
             variables[name] = int(variables[name])-1
     return line + 1
+
+
+def math(text, method_object, markers, variables):
+    if text.count('=') >= 1:
+        args = text.split('=')
+        variables[args[0]] = parse_value_full(args[1], method_object, markers, variables)
+    elif text.count('+') >= 1:
+        args = text.split('+')
+        variables[args[0]] = int(variables[args[0]]) + parse_value_full(args[1], method_object, markers, variables)
+    elif text.count('-') >= 1:
+        args = text.split('-')
+        variables[args[0]] = int(variables[args[0]]) - parse_value_full(args[1], method_object, markers, variables)
+    elif text.count('*') >= 1:
+        args = text.split('*')
+        variables[args[0]] = int(variables[args[0]]) * parse_value_full(args[1], method_object, markers, variables)
+    elif text.count('/') >= 1:
+        args = text.split('/')
+        variables[args[0]] = int(variables[args[0]]) / parse_value_full(args[1], method_object, markers, variables)
 
 
 def find_marker(name, method, line_num, method_name):
