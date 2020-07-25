@@ -1,0 +1,43 @@
+//Define a variable with the name "hello"
+def:test,9
+//Print the value of the variable
+sayAndParse:test
+//Add one to the variable
+test++
+//Print the value of the variable
+sayAndParse:test
+//Subtract one from the variable
+test--
+//Print the value of the variable
+sayAndParse:test
+//Remove variable as it's not going to be used anymore
+destroy:test
+//Says "False" because that's the default value to parse to, and the variable no longer exists
+sayAndParse:test
+
+//Define index variable
+def:index,0
+//Define end index
+def:end,50
+//Define start of loop
+mark:loop start
+    //Increment index
+    index++
+    //Print out the index
+    sayAndParse:index
+    //Define a variable and assign a random value
+    def:r_val,rand=index:end
+    //Unmark skip_to to prevent errors, however this will slow down the program if the file is large and the marker is towards the bottom.
+    unmark:skip_to
+    //Say the random value if said value does not equal the index
+    ifGotoMarker>skip_to:r:(index==r_val)
+        say:''
+        sayAndParse:r_val
+        say:'^ random value'
+        say:''
+    mark:skip_to
+//Go back to loop start
+ifGotoMarker>loop start:r:(index<end)
+//Destroy loop variables as it's a good practice if your function is going to be much than the loop
+destroy:index
+destroy:end
