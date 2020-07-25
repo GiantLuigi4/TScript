@@ -32,7 +32,7 @@ def run(method_object):
             + str(method_object.name)
             + " stopped at line "
             + str(line)
-            + " comming from line "
+            + " coming from line "
             + str(last_line)
             + " when said method only goes up to line "
             + str(len(list(method)))
@@ -69,9 +69,17 @@ def run_line(method, line, method_object, markers, variables):
     elif func.startswith('say:\''):
         print(func.replace("say:'", "", 1).replace('\'', '', 1))
         return line + 1
-    # SAY
+    # SAY NO RETURN
+    elif func.startswith('saynl:\''):
+        print(func.replace("saynl:'", "", 1).replace('\'', '', 1), end='')
+        return line + 1
+    # SAY VALUE
     elif func.startswith('sayAndParse:'):
         print(parse_value_full(func.replace("sayAndParse:", "", 1), method_object, markers, variables))
+        return line + 1
+    # SAY VALUE NO RETURN
+    elif func.startswith('sayAndParsenl:'):
+        print(parse_value_full(func.replace("sayAndParsenl:", "", 1), method_object, markers, variables), end='')
         return line + 1
     # REWIND IF CONDITION IS FALSE
     elif func.startswith('ifNotRewind>'):

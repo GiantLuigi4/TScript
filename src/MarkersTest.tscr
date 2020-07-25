@@ -1,3 +1,5 @@
+//Idk what this is. Was a test of the marker system. It's setup stupidly, lol.
+//I guess this is an example of what NOT to do.
 mark:test
 say:'hello'
 ifGotoMarker>killFunc:r:(rand=0,100<=25)

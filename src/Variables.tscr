@@ -27,17 +27,16 @@ mark:loop start
     sayAndParse:index
     //Define a variable and assign a random value
     def:r_val,rand=index:end
-    //Unmark skip_to to prevent errors, however this will slow down the program if the file is large and the marker is towards the bottom.
+    //Unmark skip_to to prevent errors, however this will slow down the program if the file is large and the marker is towards the bottom
     unmark:skip_to
     //Say the random value if said value does not equal the index
     ifGotoMarker>skip_to:r:(index==r_val)
-        say:''
+        saynl:'random value = '
         sayAndParse:r_val
-        say:'^ random value'
-        say:''
     mark:skip_to
 //Go back to loop start
 ifGotoMarker>loop start:r:(index<end)
 //Destroy loop variables as it's a good practice if your function is going to be much than the loop
+//Variables will also be destroyed when a file stops executing, so you don't need to worry about it if the variables are used till to the last line
 destroy:index
 destroy:end
