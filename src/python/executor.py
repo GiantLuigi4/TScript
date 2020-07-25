@@ -39,7 +39,7 @@ def run(method_object):
 
 
 def run_line(method, line, method_object, markers):
-    func = str(trim_line(str(method[line])))
+    func = str(method[line])
     if len(func) == 0:
         return line+1
     # NOTIFY
