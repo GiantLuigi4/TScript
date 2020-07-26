@@ -264,32 +264,36 @@ def math(text, method_object, markers, variables):
     elif text.count('+') >= 1:
         args = text.split('+')
         arg1 = variables[get_variable_name(args[0], variables)]
-        if str(arg1).isdecimal():
-            arg1 = float(arg1)
+        if str(arg1).isnumeric():
+            arg1 = int(arg1)
             variables[get_variable_name(args[0], variables)] = arg1 + parse_value_full(args[1], method_object, markers,
                                                                                        variables)
-        elif str(arg1).isnumeric():
-            arg1 = int(arg1)
+        elif str(arg1).isdecimal():
+            arg1 = float(arg1)
             variables[get_variable_name(args[0], variables)] = arg1 + parse_value_full(args[1], method_object, markers,
                                                                                        variables)
         else:
-            variables[get_variable_name(args[0], variables)] = arg1 + str(parse_value_full(args[1], method_object,
-                                                                                           markers, variables))
+            if args[1].isnumeric():
+                variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
+                                                                                               markers, variables))
+            else:
+                variables[get_variable_name(args[0], variables)] = arg1 + str(parse_value_full(args[1], method_object,
+                                                                                               markers, variables))
     elif text.count('-') >= 1:
         args = text.split('-')
         arg1 = variables[args[0]]
-        if str(arg1).isdecimal():
-            arg1 = float(arg1)
-        elif str(arg1).isnumeric():
+        if str(arg1).isnumeric():
             arg1 = int(arg1)
+        elif str(arg1).isdecimal():
+            arg1 = float(arg1)
         variables[args[0]] = arg1 - parse_value_full(args[1], method_object, markers, variables)
     elif text.count('*') >= 1:
         args = text.split('*')
         arg1 = variables[args[0]]
-        if str(arg1).isdecimal():
-            arg1 = float(arg1)
-        elif str(arg1).isnumeric():
+        if str(arg1).isnumeric():
             arg1 = int(arg1)
+        elif str(arg1).isdecimal():
+            arg1 = float(arg1)
         variables[args[0]] = arg1 * parse_value_full(args[1], method_object, markers, variables)
     elif text.count('/') >= 1:
         args = text.split('/')
@@ -383,9 +387,9 @@ def parse_whole_condition(condition, method_object, markers, variables):
         for condition_val in str(condition).split():
             condition_val = condition_val.replace(' ', '')
             if condition_val == 'or' or condition_val == '||':
-                operator = '||'
-            elif condition_val == 'and' or condition_val == '&&':
                 operator = '&&'
+            elif condition_val == 'and' or condition_val == '&&':
+                operator = '||'
             elif operator == '||':
                 operator = ''
                 val = val and parse_condition(condition_val, method_object, markers, variables)
@@ -435,12 +439,12 @@ def parse_condition(condition, method_object, markers, variables):
 def resolve(condition, method_object, markers, variables):
     if condition.count('==') >= 1:
         condition_split = condition.split('==', 1)
-        return int(parse_value_full(condition_split[0], method_object, markers, variables
-                                    )) == int(parse_value_full(condition_split[1], method_object, markers, variables))
+        return str(parse_value_full(condition_split[0], method_object, markers, variables
+                                    )) == str(parse_value_full(condition_split[1], method_object, markers, variables))
     if condition.count('!=') >= 1:
         condition_split = condition.split('!=', 1)
-        return int(parse_value_full(condition_split[0], method_object, markers, variables
-                                    )) != int(parse_value_full(condition_split[1], method_object, markers, variables))
+        return str(parse_value_full(condition_split[0], method_object, markers, variables
+                                    )) != str(parse_value_full(condition_split[1], method_object, markers, variables))
     elif condition.count('>=') >= 1:
         condition_split = condition.split('>=', 1)
         return int(parse_value_full(condition_split[0], method_object, markers, variables
@@ -528,11 +532,15 @@ def subtract(text1, text2):
 def parse_string(text):
     if text.startswith('\'') and text.endswith('\''):
         return replace_last_char(text.replace('\'', '', 1))
+    elif text == 'input':
+        return input()
     else:
         return "NAS"
 
 
 def parse_number(text, method_object, markers, variables):
+    if text.startswith('-'):
+        return -parse_number(text.replace('-', '', 1), method_object, markers, variables)
     if text.isnumeric():
         return int(text)
     # TIME NANO
