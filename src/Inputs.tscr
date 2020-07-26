@@ -17,21 +17,21 @@ mark:loop
     def:x_loop,0
     unmark:start_loop_print_x
     mark:start_loop_print_x
-    say:''
-    say:''
-    say:''
-    def:y_loop,0
-        unmark:start_loop_print_Y
-        mark:start_loop_print_Y
-            ifSkip>3:r:(x_loop==posX) and r:(y_loop==posY)
-                saynl:'_ '
-            skip:2
-                saynl:'O '
-        m:y_loop+1
-        ifGotoMarker>start_loop_print_Y:r:(y_loop<=10)
-    destroy:y_loop
-    m:x_loop+1
-    say:''
+        say:''
+        say:''
+        say:''
+        def:y_loop,0
+            unmark:start_loop_print_Y
+            mark:start_loop_print_Y
+                ifSkip>3:r:(x_loop==posX) and r:(y_loop==posY)
+                    saynl:'_ '
+                skip:2
+                    saynl:'O '
+            m:y_loop+1
+            ifGotoMarker>start_loop_print_Y:r:(y_loop<=10)
+        destroy:y_loop
+        m:x_loop+1
+        say:''
     ifGotoMarker>start_loop_print_x:r:(x_loop<=10)
     destroy:x_loop
 gotoMark:loop
