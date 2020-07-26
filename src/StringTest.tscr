@@ -1,0 +1,16 @@
+//Create the variable hello with the text "Hello"
+def:hello,'Hello'
+//Say the text of the variable hello
+sayAndParse:hello
+//Append the text "_world." to the variable hello
+m:hello+'_world.'
+//Say the new text of the variable hello
+sayAndParse:hello
+//Define a variable based on the text of the variable hello, with the text "Hello"
+def:%hello,'Hello'
+//Print the text of the variable with the name which equals the text of hello
+sayAndParse:%hello
+//Append the text " world." to the variable with the name which equals the text of hello
+m:%hello+' world.'
+//Print the new text of the variable with the name which equals the text of hello
+sayAndParse:%hello

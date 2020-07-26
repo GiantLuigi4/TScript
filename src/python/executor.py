@@ -183,18 +183,28 @@ def run_line(method, line, method_object, markers, variables):
     # GOTO END OF SCRIPT
     elif func.startswith("goToEnd"):
         return "end"
+    # MARK
     elif func.startswith("mark:"):
         marked_label = markers.get(func.replace("mark:", '', 1), "N\\A")
         if marked_label != "N\\A":
             raise DoubledMarker("Doubled marker on line " + str(line) + " of method " + str(method_object.name))
         markers.update({func.replace("mark:", '', 1): line + 1})
+    # DEFINE A VARIABLE
     elif func.startswith("def:"):
         var = variables.get(func.replace("def:", '', 1), "N\\A")
         if var != "N\\A":
             raise DoubledVariable("Doubled variable on line " + str(line) + " of method " + str(method_object.name))
+        name = func.replace("def:", '', 1).split(',')[0]
+        if name.startswith('%'):
+            name = "%" + str(
+                parse_value_full(func.replace("def:", '', 1).split(',')[0].replace("%", "", 1), method_object,
+                                 markers, variables))
+            if str(name) == 'False':
+                name = func.replace("def:", '', 1).split(',')[0]
         variables.update(
-            {func.replace("def:", '', 1).split(',')[0]: parse_value_full(func.replace('def:', '', 1).split(',')[1],
-                                                                         method_object, markers, variables)})
+            {name: parse_value_full(func.replace('def:', '', 1).split(',')[1],
+                                    method_object, markers, variables)})
+    # DEFINE A VARIABLE
     elif func.startswith("define:"):
         var = variables.get(func.replace("define:", '', 1), "N\\A")
         if var != "N\\A":
@@ -202,55 +212,93 @@ def run_line(method, line, method_object, markers, variables):
         variables.update(
             {func.replace("define:", '', 1).split(',')[0]: parse_value_full(
                 func.replace('define:', '', 1).split(',')[1], method_object, markers, variables)})
+    # DESTROY A VARIABLE
     elif func.startswith("destroy:"):
         var = variables.get(func.replace("destroy:", '', 1), "N\\A")
         if var != "N\\A":
             variables.pop(func.replace('destroy:', '', 1))
+    # UNMARK A MARKER
     elif func.startswith("unmark:"):
         mark = markers.get(func.replace("unmark:", '', 1), "N\\A")
         if mark != "N\\A":
             markers.pop(func.replace('unmark:', '', 1))
+    # GOTO A MARKER
     elif func.startswith("gotoMark:"):
         marked_label = markers.get(func.replace("gotoMark:", '', 1), "N\\A")
         if marked_label != "N\\A":
             return marked_label
         else:
             return find_marker(func.replace("gotoMark:", '', 1), method, line, method_object.name)
+    # GOTO A MARKER
     elif func.startswith("goToMark:"):
         marked_label = markers.get(func.replace("goToMark:", '', 1), "N\\A")
         if marked_label != "N\\A":
             return marked_label
         else:
             return find_marker(func.replace("goToMark:", '', 1), method, line, method_object.name)
+    # ADD 1 TO A VARIABLE
     elif func.endswith('++'):
         var = variables.get(func.replace("++", '', 1), "N\\A")
         if var != "N\\A" and str(var).isnumeric():
             name = func.replace('++', '', 1)
-            variables[name] = int(variables[name])+1
+            variables[name] = int(variables[name]) + 1
+    # SUBTRACT 1 FROM A VARIABLE
     elif func.endswith('--'):
         var = variables.get(func.replace("--", '', 1), "N\\A")
         if var != "N\\A" and str(var).isnumeric():
             name = func.replace('--', '', 1)
-            variables[name] = int(variables[name])-1
+            variables[name] = int(variables[name]) - 1
     return line + 1
+
+
+def get_variable_name(text, variables):
+    if text.startswith('%'):
+        text = '%'+variables[text.replace('%', '', 1)]
+    return text
 
 
 def math(text, method_object, markers, variables):
     if text.count('=') >= 1:
         args = text.split('=')
-        variables[args[0]] = parse_value_full(args[1], method_object, markers, variables)
+        variables[get_variable_name(args[0], variables)] = parse_value_full(args[1], method_object, markers, variables)
     elif text.count('+') >= 1:
         args = text.split('+')
-        variables[args[0]] = int(variables[args[0]]) + parse_value_full(args[1], method_object, markers, variables)
+        arg1 = variables[get_variable_name(args[0], variables)]
+        if str(arg1).isdecimal():
+            arg1 = float(arg1)
+            variables[get_variable_name(args[0], variables)] = arg1 + parse_value_full(args[1], method_object, markers,
+                                                                                       variables)
+        elif str(arg1).isnumeric():
+            arg1 = int(arg1)
+            variables[get_variable_name(args[0], variables)] = arg1 + parse_value_full(args[1], method_object, markers,
+                                                                                       variables)
+        else:
+            variables[get_variable_name(args[0], variables)] = arg1 + str(parse_value_full(args[1], method_object,
+                                                                                           markers, variables))
     elif text.count('-') >= 1:
         args = text.split('-')
-        variables[args[0]] = int(variables[args[0]]) - parse_value_full(args[1], method_object, markers, variables)
+        arg1 = variables[args[0]]
+        if str(arg1).isdecimal():
+            arg1 = float(arg1)
+        elif str(arg1).isnumeric():
+            arg1 = int(arg1)
+        variables[args[0]] = arg1 - parse_value_full(args[1], method_object, markers, variables)
     elif text.count('*') >= 1:
         args = text.split('*')
-        variables[args[0]] = int(variables[args[0]]) * parse_value_full(args[1], method_object, markers, variables)
+        arg1 = variables[args[0]]
+        if str(arg1).isdecimal():
+            arg1 = float(arg1)
+        elif str(arg1).isnumeric():
+            arg1 = int(arg1)
+        variables[args[0]] = arg1 * parse_value_full(args[1], method_object, markers, variables)
     elif text.count('/') >= 1:
         args = text.split('/')
-        variables[args[0]] = int(variables[args[0]]) / parse_value_full(args[1], method_object, markers, variables)
+        arg1 = variables[args[0]]
+        if str(arg1).isdecimal():
+            arg1 = float(arg1)
+        elif str(arg1).isnumeric():
+            arg1 = int(arg1)
+        variables[args[0]] = arg1 / parse_value_full(args[1], method_object, markers, variables)
 
 
 def find_marker(name, method, line_num, method_name):
@@ -357,6 +405,7 @@ def get_var(name, method_object):
 
 def parse_condition(condition, method_object, markers, variables):
     condition_without_not = condition
+    # NOT
     if condition.startswith('!'):
         condition_without_not = condition.replace('!', '', 1)
     value = False
@@ -371,6 +420,7 @@ def parse_condition(condition, method_object, markers, variables):
     # RANDOM
     elif condition_without_not == 'random' or condition_without_not == 'rand':
         value = random.randrange(0, 2) == 1
+    # RESOLVE
     elif str(condition_without_not).startswith('r:('):
         value = resolve(condition_without_not.replace('r:(', '', 1).replace(')', '', 1), method_object, markers,
                         variables)
@@ -412,15 +462,32 @@ def resolve(condition, method_object, markers, variables):
 
 
 def parse_value_full(text, method_object, markers, variables):
-    for text in text.split():
-        var = variables.get(text, "N\\A")
+    if text.startswith('%'):
+        text = '%' + str(parse_value_full(text.replace('%', '', 1), method_object, markers, variables))
+    for line in text.split():
+        var = variables.get(line, "N\\A")
         if var != "N\\A":
             return str(var)
     val = get_var(text, method_object)
     if val != "N\\A":
         return val
     else:
-        return parse_value(text, method_object, markers, variables)
+        val = parse_string(text)
+        if val != 'NAS':
+            return val
+        else:
+            return parse_value(text, method_object, markers, variables)
+
+
+def replace_last_char(text):
+    new_text = ''
+    index = 0
+    length = len(text)
+    for char in text:
+        if length - 1 != index:
+            new_text = new_text + char
+        index = index + 1
+    return new_text
 
 
 def parse_value(text, method_object, markers, variables):
@@ -460,7 +527,7 @@ def subtract(text1, text2):
 
 def parse_string(text):
     if text.startswith('\'') and text.endswith('\''):
-        return text.replace('\'', '')
+        return replace_last_char(text.replace('\'', '', 1))
     else:
         return "NAS"
 
