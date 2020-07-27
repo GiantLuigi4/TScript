@@ -16,10 +16,10 @@ mark:loop
         gotoEnd
     def:x_loop,0
     unmark:start_loop_print_x
+    say:''
+    say:''
+    say:''
     mark:start_loop_print_x
-        say:''
-        say:''
-        say:''
         def:y_loop,0
             unmark:start_loop_print_Y
             mark:start_loop_print_Y

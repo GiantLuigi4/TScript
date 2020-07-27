@@ -132,8 +132,8 @@ def run_line(method, line, method_object, markers, variables):
     # GOTO MARKER IF CONDITION IS FALSE
     elif func.startswith('ifNotGotoMarker>'):
         mark = get_marker_name(func.replace("ifNotGotoMarker>", "", 1))
-        if parse_whole_condition(func.replace("ifNotGotoMarker>", "", 1).replace(str(mark) + ":", '', 1), method_object,
-                                 markers, variables):
+        if not parse_whole_condition(func.replace("ifNotGotoMarker>", "", 1).replace(str(mark) + ":", '', 1),
+                                     method_object, markers, variables):
             marked_label = markers.get(func.replace("ifNotGotoMarker>:", '', 1), "N\\A")
             if marked_label != "N\\A":
                 return marked_label
@@ -196,7 +196,7 @@ def run_line(method, line, method_object, markers, variables):
             raise DoubledVariable("Doubled variable on line " + str(line) + " of method " + str(method_object.name))
         name = func.replace("def:", '', 1).split(',')[0]
         if name.startswith('%'):
-            name = "%" + str(
+            name = str(
                 parse_value_full(func.replace("def:", '', 1).split(',')[0].replace("%", "", 1), method_object,
                                  markers, variables))
             if str(name) == 'False':
@@ -248,12 +248,15 @@ def run_line(method, line, method_object, markers, variables):
         if var != "N\\A" and str(var).isnumeric():
             name = func.replace('--', '', 1)
             variables[name] = int(variables[name]) - 1
+    # AWAIT USER INPUT
+    elif func == 'await':
+        input('')
     return line + 1
 
 
 def get_variable_name(text, variables):
     if text.startswith('%'):
-        text = '%'+variables[text.replace('%', '', 1)]
+        text = variables[text.replace('%', '', 1)]
     return text
 
 
@@ -469,6 +472,8 @@ def parse_value_full(text, method_object, markers, variables):
     if text.startswith('%'):
         text = '%' + str(parse_value_full(text.replace('%', '', 1), method_object, markers, variables))
     for line in text.split():
+        if line.startswith('%'):
+            line = line.replace('%', '', 1)
         var = variables.get(line, "N\\A")
         if var != "N\\A":
             return str(var)
@@ -533,7 +538,7 @@ def parse_string(text):
     if text.startswith('\'') and text.endswith('\''):
         return replace_last_char(text.replace('\'', '', 1))
     elif text == 'input':
-        return input()
+        return input('> ')
     else:
         return "NAS"
 

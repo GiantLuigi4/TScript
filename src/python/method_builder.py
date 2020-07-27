@@ -3,8 +3,11 @@ from python import method_class
 
 def build(name, data):
     func_list = []
-    for methodText in data:
-        func_list.append(methodText.lstrip())
+    for function_text in data:
+        function_text = function_text.lstrip()
+        if function_text.startswith('//'):
+            function_text = ''
+        func_list.append(function_text)
     method = method_class.Method(name=name.replace("../", ''), function=func_list)
     return method
 
