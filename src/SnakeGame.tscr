@@ -13,8 +13,8 @@ def:appleY,3
 def:appleSegment,0
 
 mark:start loop
-	m:move=input
-	ifNotGotoMarker>start loop:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d')
+    m:move=input
+    ifNotGotoMarker>start loop:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d')
     def:segCheck,segments
     m:segCheck+1
     unmark:loopSegments_1
@@ -34,19 +34,19 @@ mark:start loop
             m:placeholderX=%segX_2
             m:placeholderY=%segY_2
         ifNotSkip>7:r:(%segX_1==placeholderX) and r:(%segY_1==placeholderY)
-                    say:''
-                    say:''
-                    say:''
-                    saynl:'Your score:'
-                    sayAndParse:segments
-                    gotoEnd
+            say:''
+            say:''
+            say:''
+            saynl:'Your score:'
+            sayAndParse:segments
+            gotoEnd
         ifNotSkip>7:r:(%segX_2==headX) and r:(%segY_2==headY)
-                    say:''
-                    say:''
-                    say:''
-                    saynl:'Your score:'
-                    sayAndParse:segments
-                    gotoEnd
+            say:''
+            say:''
+            say:''
+            saynl:'Your score:'
+            sayAndParse:segments
+            gotoEnd
         m:%segX_1=placeholderX
         m:%segY_1=placeholderY
 		destroy:placeholderX
@@ -56,9 +56,9 @@ mark:start loop
 		destroy:segY_1
 		destroy:segY_2
     ifGotoMarker>loopSegments_1:r:(segCheck>0)
-	destroy:segCheck
+    destroy:segCheck
 
-	ifNotSkip>2:r:(move=='d')
+    ifNotSkip>2:r:(move=='d')
         headY++
     ifNotSkip>2:r:(move=='a')
         headY--
@@ -69,7 +69,7 @@ mark:start loop
     ifNotSkip>2:r:(move=='end')
         gotoEnd
 
-	def:x_loop,0
+    def:x_loop,0
     unmark:start_loop_print_x
     say:''
     say:''
@@ -94,19 +94,19 @@ mark:start loop
                                     ifNotSkip>3:r:(segCheck==segments)
                                         saynl:'c '
                                     skip:2
-			                            saynl:'o '
-	                            skip:3
-		                            saynl:'0 '
-		                            m:appleSegment=segCheck
+                                        saynl:'o '
+                                skip:3
+                                    saynl:'0 '
+                                    m:appleSegment=segCheck
                             segmentsInTile++
                         segCheck++
                     ifGotoMarker>loopSegments:r:(segCheck<=segments)
                     destroy:segCheck
                     ifSkip>5:r:(segmentsInTile>=1)
                         ifSkip>3:r:(appleX==x_loop) and r:(appleY==y_loop)
-		                    saynl:'_ '
-	                    skip:2
-	                        saynl:'a '
+                            saynl:'_ '
+                        skip:2
+                            saynl:'a '
                     destroy:segmentsInTile
                 skip:3
                 mark:else
@@ -119,18 +119,18 @@ mark:start loop
     ifGotoMarker>start_loop_print_x:r:(x_loop<=10)
     destroy:x_loop
 
-	def:prevAppleSegment,appleSegment
-	def:prevLength,segments
+    def:prevAppleSegment,appleSegment
+    def:prevLength,segments
     def:appleSegX,'segX'
     def:appleSegY,'segY'
     m:appleSegX+appleSegment
     m:appleSegY+appleSegment
     ifNotGotoMarker>end_create_segment:r:(%appleSegX==appleX) and r:(%appleSegY==appleY) and r:(appleSegment==segments)
         m:appleSegment+1
-	    def:newSegX,'segX'
-	    def:newSegY,'segY'
-	    m:newSegX+%appleSegment
-	    m:newSegY+%appleSegment
+        def:newSegX,'segX'
+        def:newSegY,'segY'
+        m:newSegX+%appleSegment
+        m:newSegY+%appleSegment
         def:%newSegX,%appleX
         def:%newSegY,%appleY
         m:segments+1
@@ -148,18 +148,18 @@ mark:start loop
     destroy:appleSegX
     destroy:appleSegY
 
-	ifSkip>9:r:(prevAppleSegment==0)
+    ifSkip>9:r:(prevAppleSegment==0)
         saynl:'Apple in segment:'
         ifNotSkip>3:r:(appleSegment<prevAppleSegment)
-	        sayAndParsenl:prevAppleSegment
-	    skip:2
-		    sayAndParsenl:appleSegment
-	    saynl:' of '
-	    sayAndParse:prevLength
+            sayAndParsenl:prevAppleSegment
+        skip:2
+            sayAndParsenl:appleSegment
+        saynl:' of '
+        sayAndParse:prevLength
     skip:4
-	    saynl:'Apple is not in snake, '
-	    sayAndParsenl:prevLength
-	    say:' segments.'
+        saynl:'Apple is not in snake, '
+        sayAndParsenl:prevLength
+        say:' segments.'
     destroy:prevAppleSegment
     destroy:prevLength
 gotoMark:start loop
