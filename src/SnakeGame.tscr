@@ -1,13 +1,22 @@
-skip:6
-//Imo, this is too long to commentate.
+skip:13
+//Imo, this is too long to commentate on the loop.
 //Deconstruct and play around with it yourself to figure out what everything is I guess.
 //Also, this is a slow mess (on the python executor), might be faster when I make a C version of the executor.
+//Most of this is just using the features of this language.
+//Because this language doesn't have lists, you have to define a variable with a base name, then add an id onto the end to fake a list.
+//If you put "%" before a variable when doing most things, it'll tell the language "I want to use the value of the variable, instead of the raw text"
+//so "ifSkip>2:r:(%hello==5)" means if the variable with a name that matches the value of hello equals 5, skip the next line
+//Skips and rewinds count themselves as line 0.
+//Only after I wrote this did I realize that you can't use variables in skips and whatnot...
+//I feel that should stay, simply because there's enough weird thought processes that need to be used to actual script in this language.
 
 //Width and height of board
 saynl:'Width: '
 def:Board_Width,input
+m:Board_Width-1
 saynl:'Height: '
 def:Board_Height,input
+m:Board_Height-1
 //Head starts in the middle.
 def:headX,Board_Height
 m:headX/2
@@ -30,12 +39,14 @@ def:appleX,rand=0:Board_Height
 def:appleY,rand=0:Board_Width
 //Segment which contains the apple (if one contains the apple), elsewise this variable is just 0
 def:appleSegment,0
+def:justAddedSegment,0
 mark:start loop
     m:move=input
     ifNotGotoMarker>start loop:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d') or r:(move=='end')
     def:segCheck,segments
     m:segCheck+1
     unmark:loopSegments_1
+    m:segCheck+justAddedSegment
     mark:loopSegments_1
         def:segX_1,'segX'
         def:segX_2,'segX'
@@ -51,20 +62,6 @@ mark:start loop
         ifSkip>3:r:(segCheck==0)
             m:placeholderX=%segX_2
             m:placeholderY=%segY_2
-        ifNotSkip>7:r:(%segX_1==placeholderX) and r:(%segY_1==placeholderY)
-            say:''
-            say:''
-            say:''
-            saynl:'Your score:'
-            sayAndParse:segments
-            gotoEnd
-        ifNotSkip>7:r:(%segX_2==headX) and r:(%segY_2==headY)
-            say:''
-            say:''
-            say:''
-            saynl:'Your score:'
-            sayAndParse:segments
-            gotoEnd
         m:%segX_1=placeholderX
         m:%segY_1=placeholderY
 		destroy:placeholderX
@@ -75,6 +72,7 @@ mark:start loop
 		destroy:segY_2
     ifGotoMarker>loopSegments_1:r:(segCheck>0)
     destroy:segCheck
+    m:justAddedSegment=0
 
     ifNotSkip>2:r:(move=='d')
         headY++
@@ -92,6 +90,21 @@ mark:start loop
         saynl:'Your score:'
         sayAndParse:segments
         gotoEnd
+
+    def:segCheck,segments
+    m:segCheck+1
+    unmark:loopSegments_2
+    mark:loopSegments_2
+        ifNotSkip>7:r:(%segX_1==headX) and r:(%segY_1==headY)
+            say:''
+            say:''
+            say:''
+            saynl:'Your score:'
+            sayAndParse:segments
+            gotoEnd
+        segCheck--
+    ifGotoMarker>loopSegments_2:r:(segCheck>0)
+    destroy:segCheck
 
     def:x_loop,0
     unmark:start_loop_print_x
@@ -171,6 +184,7 @@ mark:start loop
         m:appleSegment=0
         destroy:newSegX
         destroy:newSegY
+        m:justAddedSegment+1
     unmark:end_create_segment
     mark:end_create_segment
     destroy:appleSegX

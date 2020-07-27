@@ -3,6 +3,7 @@ def:move,0
 def:posX,5
 def:posY,5
 mark:loop
+//Take and interpret user input.
     m:move=input
     ifNotSkip>2:r:(move=='d')
         posY++

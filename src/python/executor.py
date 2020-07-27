@@ -6,9 +6,8 @@ from python import method_loader
 from python.errors import *
 
 
-def run(method_object):
+def run(method_object, line=0):
     method = method_object.list
-    line = 0
     last_line = 0
     labels = {}
     variables = {}
@@ -27,6 +26,10 @@ def run(method_object):
             line = run_line(method, line, method_object, labels, variables)
             if line == "end":
                 return
+            elif str(line).startswith("reload:"):
+                return line
+            elif str(line).startswith('return:'):
+                return line.replace('return:', '', 1)
     except:
         print("Error while interpreting line " + str(line))
         print("Please report this (with the file " + method_object.name + ") to the creator of TScript.")
@@ -46,12 +49,13 @@ def run(method_object):
 
 def run_line(method, line, method_object, markers, variables):
     func = str(method[line])
-    if len(func) == 0:
-        return line + 1
     # NOTIFY
     if func.startswith("notify:"):
         func = func.replace("notify:", '', 1)
         print("Hit line " + str(line) + " in method " + str(method_object.name) + ".")
+        print("Text: " + str(func))
+    if len(func) == 0:
+        return line + 1
     if func.startswith('m:'):
         math(func.replace('m:', '', 1), method_object, markers, variables)
     # REWIND
@@ -168,7 +172,9 @@ def run_line(method, line, method_object, markers, variables):
     # WAIT SECONDS
     elif func.startswith('sleepSeconds:'):
         time.sleep(int(parse_value(func.replace('sleepSeconds:', ""), method_object, markers, variables)))
-    # TODO:Call another file based on the text in a variable
+    # CALL AND PARSE
+    elif func.startswith('callAndParse:'):
+        method_loader.load_or_get(func.replace('callAndParse:', '')).execute()
     # CALL ANOTHER FILE
     elif func.startswith('call:'):
         method_loader.load_or_get(func.replace('call:', '')).execute()
@@ -262,6 +268,13 @@ def run_line(method, line, method_object, markers, variables):
         if var != "N\\A":
             name = func.replace('i:', '', 1)
             variables[name] = int(get_num(str(variables[name])))
+    # RELOAD
+    elif func == 'reload':
+        method_loader.method_dictionary.clear()
+        return 'reload:' + str(line)
+    # GET A VALUE, AND DO NOTHING WITH IT
+    elif func.startswith('runVal:'):
+        parse_value_full(func.replace('runVal:', '', 1), method_object, markers, variables)
     return line + 1
 
 
@@ -280,18 +293,18 @@ def math(text, method_object, markers, variables):
         arg1 = variables[get_variable_name(args[0], variables)]
         if str(arg1).isnumeric():
             arg1 = int(arg1)
-            variables[get_variable_name(args[0], variables)] = arg1 + parse_value_full(args[1], method_object, markers,
-                                                                                       variables)
+            variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object, markers,
+                                                                                       variables))
         elif str(arg1).isdecimal():
             arg1 = float(arg1)
-            variables[get_variable_name(args[0], variables)] = arg1 + parse_value_full(args[1], method_object, markers,
-                                                                                       variables)
+            variables[get_variable_name(args[0], variables)] = arg1 + float(parse_value_full(args[1], method_object, markers,
+                                                                                       variables))
         else:
             if args[1].isnumeric():
                 variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
                                                                                                markers, variables))
             else:
-                variables[get_variable_name(args[0], variables)] = arg1 + str(parse_value_full(args[1], method_object,
+                variables[get_variable_name(args[0], variables)] = str(arg1) + str(parse_value_full(args[1], method_object,
                                                                                                markers, variables))
     elif text.count('-') >= 1:
         args = text.split('-')

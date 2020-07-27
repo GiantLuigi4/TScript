@@ -10,6 +10,7 @@ from python import method_loader
 # method_built = method_loader.load_or_get("StringTest.tscr")
 # method_built = method_loader.load_or_get("Inputs.tscr")
 method_built = method_loader.load_or_get("SnakeGame.tscr")
+# method_built = method_loader.load_or_get("reload.tscr")
 # method_built = method_loader.load_or_get("Test.tscr")
 # method_built = method_loader.load_or_get("GotoEndAndMoreOnComments.tscr")
 method_built.execute()

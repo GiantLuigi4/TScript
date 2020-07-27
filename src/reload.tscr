@@ -1,0 +1,8 @@
+def:hello,5
+saynl:'hello='
+sayAndParse:hello
+runVal:input
+say:'Reload all scripts'
+reload
+saynl:'hello='
+sayAndParse:hello
