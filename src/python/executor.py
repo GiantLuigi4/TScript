@@ -12,20 +12,25 @@ def run(method_object):
     last_line = 0
     labels = {}
     variables = {}
-    while line < len(list(method)):
-        if line < 0:
-            raise BadGoToError(
-                "Tried to execute non existent line "
-                + str(line)
-                + " in method "
-                + str(method_object.name)
-                + " coming from line "
-                + str(last_line)
-            )
-        last_line = line
-        line = run_line(method, line, method_object, labels, variables)
-        if line == "end":
-            return
+    try:
+        while line < len(list(method)):
+            if line < 0:
+                raise BadGoToError(
+                    "Tried to execute non existent line "
+                    + str(line)
+                    + " in method "
+                    + str(method_object.name)
+                    + " coming from line "
+                    + str(last_line)
+                )
+            last_line = line
+            line = run_line(method, line, method_object, labels, variables)
+            if line == "end":
+                return
+    except:
+        print("Error while interpreting line " + str(line))
+        print("Please report this (with the file " + method_object.name + ") to the creator of TScript.")
+        print("https://github.com/GiantLuigi4/TScript/blob/master/src/SnakeGame.tscr")
     if line > len(list(method)):
         raise BadGoToError(
             "Execution of method "
@@ -251,6 +256,12 @@ def run_line(method, line, method_object, markers, variables):
     # AWAIT USER INPUT
     elif func == 'await':
         input('')
+    # CAST TO INT
+    elif func.startswith('i:'):
+        var = variables.get(func.replace("i:", '', 1), "N\\A")
+        if var != "N\\A":
+            name = func.replace('i:', '', 1)
+            variables[name] = int(get_num(str(variables[name])))
     return line + 1
 
 
@@ -536,9 +547,9 @@ def subtract(text1, text2):
 
 def parse_string(text):
     if text.startswith('\'') and text.endswith('\''):
-        return replace_last_char(text.replace('\'', '', 1))
+        return replace_last_char(text.replace('\'', '', 1)).replace('\\n', '\n')
     elif text == 'input':
-        return input('> ')
+        return input('> ').replace('\\\\', '\\')
     else:
         return "NAS"
 

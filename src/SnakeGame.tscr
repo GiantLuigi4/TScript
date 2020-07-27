@@ -1,20 +1,38 @@
-def:headX,5
-def:headY,5
+skip:6
+//Imo, this is too long to commentate.
+//Deconstruct and play around with it yourself to figure out what everything is I guess.
+//Also, this is a slow mess (on the python executor), might be faster when I make a C version of the executor.
+
+//Width and height of board
+saynl:'Width: '
+def:Board_Width,input
+saynl:'Height: '
+def:Board_Height,input
+//Head starts in the middle.
+def:headX,Board_Height
+m:headX/2
+i:headX
+def:headY,Board_Width
+m:headY/2
+i:headY
 def:move,''
+//Player starts 2 segments long
 def:segments,2
-def:segX1,4
-def:segY1,5
-def:segX2,3
-def:segY2,5
-
-def:appleX,7
-def:appleY,3
-
+//Define first 2 segments manually
+def:segX1,headX
+m:segX1-1
+def:segY1,headY
+def:segX2,headX
+m:segX2-2
+def:segY2,headY
+//Define apple starting location
+def:appleX,rand=0:Board_Height
+def:appleY,rand=0:Board_Width
+//Segment which contains the apple (if one contains the apple), elsewise this variable is just 0
 def:appleSegment,0
-
 mark:start loop
     m:move=input
-    ifNotGotoMarker>start loop:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d')
+    ifNotGotoMarker>start loop:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d') or r:(move=='end')
     def:segCheck,segments
     m:segCheck+1
     unmark:loopSegments_1
@@ -66,14 +84,21 @@ mark:start loop
         headX--
     ifNotSkip>2:r:(move=='s')
         headX++
-    ifNotSkip>2:r:(move=='end')
+
+    ifNotSkip>7:r:(move=='end') or r:(headX<0) or r:(headY<0) or r:(headX>Board_Height) or r:(headY>Board_Width)
+        say:''
+        say:''
+        say:''
+        saynl:'Your score:'
+        sayAndParse:segments
         gotoEnd
 
     def:x_loop,0
     unmark:start_loop_print_x
-    say:''
-    say:''
-    say:''
+    def:display,''
+    m:display+'\n'
+    m:display+'\n'
+    m:display+'\n'
     mark:start_loop_print_x
         def:y_loop,0
             unmark:start_loop_print_Y
@@ -92,11 +117,11 @@ mark:start loop
                             ifSkip>10:r:(segmentsInTile>=1)
                                 ifSkip>6:r:(appleX==x_loop) and r:(appleY==y_loop)
                                     ifNotSkip>3:r:(segCheck==segments)
-                                        saynl:'c '
+                                        m:display+'_c'
                                     skip:2
-                                        saynl:'o '
+                                        m:display+'_o'
                                 skip:3
-                                    saynl:'0 '
+                                    m:display+'_0'
                                     m:appleSegment=segCheck
                             segmentsInTile++
                         segCheck++
@@ -104,20 +129,23 @@ mark:start loop
                     destroy:segCheck
                     ifSkip>5:r:(segmentsInTile>=1)
                         ifSkip>3:r:(appleX==x_loop) and r:(appleY==y_loop)
-                            saynl:'_ '
+                            m:display+'_ '
                         skip:2
-                            saynl:'a '
+                            m:display+'_a'
                     destroy:segmentsInTile
                 skip:3
                 mark:else
-                    saynl:'O '
+                    m:display+'_O'
             m:y_loop+1
-            ifGotoMarker>start_loop_print_Y:r:(y_loop<=10)
+            ifGotoMarker>start_loop_print_Y:r:(y_loop<=Board_Width)
         destroy:y_loop
         m:x_loop+1
-        say:''
-    ifGotoMarker>start_loop_print_x:r:(x_loop<=10)
+        m:display+'\n'
+    ifGotoMarker>start_loop_print_x:r:(x_loop<=Board_Height)
     destroy:x_loop
+    m:display+'\n'
+    sayAndParse:display
+    destroy:display
 
     def:prevAppleSegment,appleSegment
     def:prevLength,segments
@@ -134,8 +162,8 @@ mark:start loop
         def:%newSegX,%appleX
         def:%newSegY,%appleY
         m:segments+1
-        def:rand1,rand=0:10
-        def:rand2,rand=0:10
+        def:rand1,rand=0:Board_Height
+        def:rand2,rand=0:Board_Width
         m:appleX=rand1
         m:appleY=rand2
         destroy:rand1
