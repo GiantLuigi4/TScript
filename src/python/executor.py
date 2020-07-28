@@ -293,19 +293,20 @@ def math(text, method_object, markers, variables):
         arg1 = variables[get_variable_name(args[0], variables)]
         if str(arg1).isnumeric():
             arg1 = int(arg1)
-            variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object, markers,
-                                                                                       variables))
+            variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
+                                                                                           markers, variables))
         elif str(arg1).isdecimal():
             arg1 = float(arg1)
-            variables[get_variable_name(args[0], variables)] = arg1 + float(parse_value_full(args[1], method_object, markers,
-                                                                                       variables))
+            variables[get_variable_name(args[0], variables)] = arg1 + float(parse_value_full(args[1], method_object,
+                                                                                             markers, variables))
         else:
             if args[1].isnumeric():
                 variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
                                                                                                markers, variables))
             else:
-                variables[get_variable_name(args[0], variables)] = str(arg1) + str(parse_value_full(args[1], method_object,
-                                                                                               markers, variables))
+                variables[get_variable_name(args[0], variables)] = str(arg1) + str(parse_value_full(args[1],
+                                                                                                    method_object,
+                                                                                                    markers, variables))
     elif text.count('-') >= 1:
         args = text.split('-')
         arg1 = variables[args[0]]
@@ -313,7 +314,7 @@ def math(text, method_object, markers, variables):
             arg1 = int(arg1)
         elif str(arg1).isdecimal():
             arg1 = float(arg1)
-        variables[args[0]] = arg1 - parse_value_full(args[1], method_object, markers, variables)
+        variables[args[0]] = arg1 - int(parse_value_full(args[1], method_object, markers, variables))
     elif text.count('*') >= 1:
         args = text.split('*')
         arg1 = variables[args[0]]
@@ -321,7 +322,7 @@ def math(text, method_object, markers, variables):
             arg1 = int(arg1)
         elif str(arg1).isdecimal():
             arg1 = float(arg1)
-        variables[args[0]] = arg1 * parse_value_full(args[1], method_object, markers, variables)
+        variables[args[0]] = arg1 * int(parse_value_full(args[1], method_object, markers, variables))
     elif text.count('/') >= 1:
         args = text.split('/')
         arg1 = variables[args[0]]
@@ -329,7 +330,7 @@ def math(text, method_object, markers, variables):
             arg1 = float(arg1)
         elif str(arg1).isnumeric():
             arg1 = int(arg1)
-        variables[args[0]] = arg1 / parse_value_full(args[1], method_object, markers, variables)
+        variables[args[0]] = arg1 / int(parse_value_full(args[1], method_object, markers, variables))
 
 
 def find_marker(name, method, line_num, method_name):

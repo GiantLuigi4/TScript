@@ -25,6 +25,8 @@ def:headY,Board_Width
 m:headY/2
 i:headY
 def:move,''
+def:last_move,''
+def:last_move2,''
 //Player starts 2 segments long
 def:segments,2
 //Define first 2 segments manually
@@ -40,7 +42,10 @@ def:appleY,rand=0:Board_Width
 //Segment which contains the apple (if one contains the apple), elsewise this variable is just 0
 def:appleSegment,0
 def:justAddedSegment,0
+//Variable for wether or not the player is dead
+def:isDead,0
 mark:start loop
+    m:last_move=move
     m:move=input
     ifNotGotoMarker>start loop:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d') or r:(move=='end')
     def:segCheck,segments
@@ -72,16 +77,16 @@ mark:start loop
 		destroy:segY_2
     ifGotoMarker>loopSegments_1:r:(segCheck>0)
     destroy:segCheck
-    m:justAddedSegment=0
 
-    ifNotSkip>2:r:(move=='d')
-        headY++
-    ifNotSkip>2:r:(move=='a')
-        headY--
-    ifNotSkip>2:r:(move=='w')
-        headX--
-    ifNotSkip>2:r:(move=='s')
-        headX++
+    def:prevHeadX,headX
+    def:prevHeadY,headY
+    //Call input helper method
+    def:called,0
+    mark:preCallCheckAndHandleInput
+    ifNotSkip>3:r:(called==0)
+        m:called=1
+        gotoMark:CheckAndHandleInput
+    unmark:preCallCheckAndHandleInput
 
     ifNotSkip>7:r:(move=='end') or r:(headX<0) or r:(headY<0) or r:(headX>Board_Height) or r:(headY>Board_Width)
         say:''
@@ -91,20 +96,32 @@ mark:start loop
         sayAndParse:segments
         gotoEnd
 
-    def:segCheck,segments
-    m:segCheck+1
+    ifNotSkip>5:r:(headX==prevHeadX) and r:(headY==prevHeadY)
+        destroy:prevHeadY
+        destroy:prevHeadX
+        m:last_move=last_move2
+        gotoMark:start loop
+    destroy:prevHeadY
+    destroy:prevHeadX
+    m:last_move2=last_move
+
+    def:segCheck,1
     unmark:loopSegments_2
     mark:loopSegments_2
-        ifNotSkip>7:r:(%segX_1==headX) and r:(%segY_1==headY)
-            say:''
-            say:''
-            say:''
-            saynl:'Your score:'
-            sayAndParse:segments
-            gotoEnd
-        segCheck--
-    ifGotoMarker>loopSegments_2:r:(segCheck>0)
+        def:segX_1,'segX'
+        def:segY_1,'segY'
+        m:segX_1+segCheck
+        m:segY_1+segCheck
+        ifNotSkip>2:r:(%segX_1==headX) and r:(%segY_1==headY)
+            m:isDead=1
+        segCheck++
+        destroy:segX_1
+        destroy:segY_1
+    ifGotoMarker>loopSegments_2:r:(segCheck<=segments)
+    unmark:end_loop_segments_2
     destroy:segCheck
+
+    m:justAddedSegment=0
 
     def:x_loop,0
     unmark:start_loop_print_x
@@ -160,6 +177,14 @@ mark:start loop
     sayAndParse:display
     destroy:display
 
+    ifNotSkip>7:r:(isDead==1)
+        sayAndParse:''
+        sayAndParse:''
+        sayAndParse:''
+        saynl:'Your score:'
+        sayAndParse:segments
+        gotoEnd
+
     def:prevAppleSegment,appleSegment
     def:prevLength,segments
     def:appleSegX,'segX'
@@ -177,8 +202,8 @@ mark:start loop
         m:segments+1
         def:rand1,rand=0:Board_Height
         def:rand2,rand=0:Board_Width
-        m:appleX=rand1
-        m:appleY=rand2
+//        m:appleX=rand1
+//        m:appleY=rand2
         destroy:rand1
         destroy:rand2
         m:appleSegment=0
@@ -205,3 +230,33 @@ mark:start loop
     destroy:prevAppleSegment
     destroy:prevLength
 gotoMark:start loop
+//This should never get called, but just incase it does, I'm gonna send the point of execution straight to the end.
+gotoEnd
+
+
+
+
+//This is more or less how you do voids.
+
+//For java users, all variables that don't get destroyed before calling this method are static.
+//The code above is the "public static void main(String[] args)" method, this is a void method.
+
+//Idk python terminology, but, for python users, the variables that aren't destroyed are the ones just laying in the file,
+//and the code above would be the code that gets executed if you run the file.
+mark:CheckAndHandleInput
+unmark:CheckAndHandleInput
+//This just speeds it up, as the first time it gets called, it has to iterate through till the "CheckAndHandleInput", then set the line to that.
+//If you didn't mark, unmark, mark, then it'd have to do that every single time.
+mark:CheckAndHandleInput
+
+ifNotSkip>2:r:(move=='d') and r:(last_move!='a')
+    headY++
+ifNotSkip>2:r:(move=='a') and r:(last_move!='d')
+    headY--
+ifNotSkip>2:r:(move=='w') and r:(last_move!='s')
+    headX--
+ifNotSkip>2:r:(move=='s') and r:(last_move!='w')
+    headX++
+
+//ALWAYS put a gotoMark after any helper methods
+gotoMark:preCallCheckAndHandleInput
