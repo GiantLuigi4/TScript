@@ -202,8 +202,8 @@ mark:start loop
         m:segments+1
         def:rand1,rand=0:Board_Height
         def:rand2,rand=0:Board_Width
-//        m:appleX=rand1
-//        m:appleY=rand2
+        m:appleX=rand1
+        m:appleY=rand2
         destroy:rand1
         destroy:rand2
         m:appleSegment=0
