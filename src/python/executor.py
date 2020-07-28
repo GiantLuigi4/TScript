@@ -334,13 +334,18 @@ def math(text, method_object, markers, variables):
 
 
 def find_marker(name, method, line_num, method_name):
-    i = 0
-    for line in method:
+    for i in range(0, len(method)):
+        line = method[i]
         if line.startswith('notify:'):
             line = line.replace('notify:', '', 1)
         if line.startswith("mark:") and line.replace('mark:', '', 1) == name:
             return i + 1
-        i = i + 1
+        if line_num + i + 1 < len(method):
+            line = method[line_num + i]
+            if line.startswith('notify:'):
+                line = line.replace('notify:', '', 1)
+            if line.startswith("mark:") and line.replace('mark:', '', 1) == name:
+                return line_num + i + 1
     raise RuntimeError(
         "Line "
         + str(line_num)
