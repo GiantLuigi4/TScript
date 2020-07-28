@@ -1,5 +1,4 @@
 skip:13
-//Imo, this is too long to commentate on the loop.
 //Deconstruct and play around with it yourself to figure out what everything is I guess.
 //Also, this is a slow mess (on the python executor), might be faster when I make a C version of the executor.
 //Most of this is just using the features of this language.
@@ -9,24 +8,31 @@ skip:13
 //Skips and rewinds count themselves as line 0.
 //Only after I wrote this did I realize that you can't use variables in skips and whatnot...
 //I feel that should stay, simply because there's enough weird thought processes that need to be used to actual script in this language.
+//Also, I think this is a relatively optimized script, with decently little glitches.
 
 //Width and height of board
 saynl:'Width: '
 def:Board_Width,input
+//Subtract one from board width to give the user the size they want.
 m:Board_Width-1
 saynl:'Height: '
 def:Board_Height,input
+//Subtract one from board height to give the user the size they want.
 m:Board_Height-1
 //Head starts in the middle.
 def:headX,Board_Height
+//Center head on X axis
 m:headX/2
+//Round head position on X axis
 i:headX
 def:headY,Board_Width
+//Center head on Y axis
 m:headY/2
+//Round head position on Y axis
 i:headY
+//Define variables
 def:move,''
 def:last_move,''
-def:last_move2,''
 //Player starts 2 segments long
 def:segments,2
 //Define first 2 segments manually
@@ -42,16 +48,23 @@ def:appleY,rand=0:Board_Width
 //Segment which contains the apple (if one contains the apple), elsewise this variable is just 0
 def:appleSegment,0
 def:justAddedSegment,0
-//Variable for wether or not the player is dead
+//Variable for weather or not the player is dead
 def:isDead,0
 mark:start loop
-    m:last_move=move
+    //Get input
     m:move=input
+    //This line is here because for some reason it glitches if I put this one the end of the other move validator
+    ifSkip>3:r:(move==' ') or r:(move=='')
+    //Go back to start if move is invalid (prevents the player from dying because they made an invalid move)
     ifNotGotoMarker>start loop:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d') or r:(move=='end')
+    //Store last move to move
+    ifSkip>2:r:(move=='w') or r:(move=='a') or r:(move=='s') or r:(move=='d') or r:(move=='end')
+        m:move=last_move
     def:segCheck,segments
     m:segCheck+1
-    unmark:loopSegments_1
     m:segCheck+justAddedSegment
+    //Move all segments to the next segment.
+    unmark:loopSegments_1
     mark:loopSegments_1
         def:segX_1,'segX'
         def:segX_2,'segX'
@@ -77,7 +90,7 @@ mark:start loop
 		destroy:segY_2
     ifGotoMarker>loopSegments_1:r:(segCheck>0)
     destroy:segCheck
-
+    //Store previous head position
     def:prevHeadX,headX
     def:prevHeadY,headY
     //Call input helper method
@@ -87,7 +100,7 @@ mark:start loop
         m:called=1
         gotoMark:CheckAndHandleInput
     unmark:preCallCheckAndHandleInput
-
+    //Handle death on edge of board and manual end
     ifNotSkip>7:r:(move=='end') or r:(headX<0) or r:(headY<0) or r:(headX>Board_Height) or r:(headY>Board_Width)
         say:''
         say:''
@@ -95,16 +108,16 @@ mark:start loop
         saynl:'Your score:'
         sayAndParse:segments
         gotoEnd
-
-    ifNotSkip>5:r:(headX==prevHeadX) and r:(headY==prevHeadY)
+    //Handle post input
+    ifNotSkip>4:r:(headX==prevHeadX) and r:(headY==prevHeadY)
         destroy:prevHeadY
         destroy:prevHeadX
-        m:last_move=last_move2
         gotoMark:start loop
     destroy:prevHeadY
     destroy:prevHeadX
-    m:last_move2=last_move
-
+    //Store last valid move
+    m:last_move=move
+    //Check if player is dead
     def:segCheck,1
     unmark:loopSegments_2
     mark:loopSegments_2
@@ -120,9 +133,9 @@ mark:start loop
     ifGotoMarker>loopSegments_2:r:(segCheck<=segments)
     unmark:end_loop_segments_2
     destroy:segCheck
-
+    //New segment has been ignored I think? Can't remember how important this variable is
     m:justAddedSegment=0
-
+    //Display (I really cannot commentate more on this, there's way too much)
     def:x_loop,0
     unmark:start_loop_print_x
     def:display,''
@@ -176,7 +189,7 @@ mark:start loop
     m:display+'\n'
     sayAndParse:display
     destroy:display
-
+    //Handle death
     ifNotSkip>7:r:(isDead==1)
         sayAndParse:''
         sayAndParse:''
@@ -184,15 +197,18 @@ mark:start loop
         saynl:'Your score:'
         sayAndParse:segments
         gotoEnd
-
+    //Define segment and length variables for apple detection and printing
     def:prevAppleSegment,appleSegment
     def:prevLength,segments
+    //Get the coords of the segment which the apple is in
     def:appleSegX,'segX'
     def:appleSegY,'segY'
     m:appleSegX+appleSegment
     m:appleSegY+appleSegment
+    //Spawn new segment and move apple if the apple is in the same tile as the segment, and the apple is in the last segment of the snake
     ifNotGotoMarker>end_create_segment:r:(%appleSegX==appleX) and r:(%appleSegY==appleY) and r:(appleSegment==segments)
         m:appleSegment+1
+        //Spawn new segment
         def:newSegX,'segX'
         def:newSegY,'segY'
         m:newSegX+%appleSegment
@@ -200,12 +216,15 @@ mark:start loop
         def:%newSegX,%appleX
         def:%newSegY,%appleY
         m:segments+1
+        //Randomize apple coords
         def:rand1,rand=0:Board_Height
         def:rand2,rand=0:Board_Width
         m:appleX=rand1
         m:appleY=rand2
+        //Destroy variables
         destroy:rand1
         destroy:rand2
+        //Apple segment = 0 to avoid glitches
         m:appleSegment=0
         destroy:newSegX
         destroy:newSegY
@@ -214,7 +233,7 @@ mark:start loop
     mark:end_create_segment
     destroy:appleSegX
     destroy:appleSegY
-
+    //Say text at bottom of board relating to apple
     ifSkip>9:r:(prevAppleSegment==0)
         saynl:'Apple in segment:'
         ifNotSkip>3:r:(appleSegment<prevAppleSegment)
@@ -223,14 +242,22 @@ mark:start loop
             sayAndParsenl:appleSegment
         saynl:' of '
         sayAndParse:prevLength
-    skip:4
-        saynl:'Apple is not in snake, '
-        sayAndParsenl:prevLength
-        say:' segments.'
+    gotoMark:end_print_not_in_tail
+        ifSkip>5:r:(appleX==headX) and r:(appleY==headY)
+            saynl:'Apple is not in snake, '
+            sayAndParsenl:prevLength
+            say:' segments.'
+        skip:4
+            saynl:'Apple is in head, '
+            sayAndParsenl:prevLength
+            say:' segments.'
+    unmark:end_print_not_in_tail
+    mark:end_print_not_in_tail
+    //Destroy extra variables
     destroy:prevAppleSegment
     destroy:prevLength
 gotoMark:start loop
-//This should never get called, but just incase it does, I'm gonna send the point of execution straight to the end.
+//This should never get called, but just in case it does, I'm gonna send the point of execution straight to the end.
 gotoEnd
 
 
