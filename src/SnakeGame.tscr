@@ -146,6 +146,7 @@ mark:start loop
         def:y_loop,0
             unmark:start_loop_print_Y
             mark:start_loop_print_Y
+                m:display+'_'
                 unmark:else
                 ifGotoMarker>else:r:(x_loop==headX) and r:(y_loop==headY)
                     def:segCheck,1
@@ -160,11 +161,11 @@ mark:start loop
                             ifSkip>10:r:(segmentsInTile>=1)
                                 ifSkip>6:r:(appleX==x_loop) and r:(appleY==y_loop)
                                     ifNotSkip>3:r:(segCheck==segments)
-                                        m:display+'_c'
+                                        m:display+'c'
                                     skip:2
-                                        m:display+'_o'
+                                        m:display+'o'
                                 skip:3
-                                    m:display+'_0'
+                                    m:display+'0'
                                     m:appleSegment=segCheck
                             segmentsInTile++
                         segCheck++
@@ -172,13 +173,14 @@ mark:start loop
                     destroy:segCheck
                     ifSkip>5:r:(segmentsInTile>=1)
                         ifSkip>3:r:(appleX==x_loop) and r:(appleY==y_loop)
-                            m:display+'_ '
+                            m:display+' '
                         skip:2
-                            m:display+'_a'
+                            m:display+'a'
                     destroy:segmentsInTile
                 skip:3
                 mark:else
-                    m:display+'_O'
+                    m:display+'O'
+            m:display+''
             m:y_loop+1
             ifGotoMarker>start_loop_print_Y:r:(y_loop<=Board_Width)
         destroy:y_loop
