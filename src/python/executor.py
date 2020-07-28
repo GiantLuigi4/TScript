@@ -30,10 +30,13 @@ def run(method_object, line=0):
                 return line
             elif str(line).startswith('return:'):
                 return line.replace('return:', '', 1)
-    except:
+    except Exception as exc:
+        print(exc)
+        print('\n\n')
         print("Error while interpreting line " + str(line))
-        print("Please report this (with the file " + method_object.name + ") to the creator of TScript.")
-        print("https://github.com/GiantLuigi4/TScript/blob/master/src/SnakeGame.tscr")
+        print("If you thing this error should not be occuring,")
+        print("please report this (with the file " + method_object.name + ") to the creator of TScript.")
+        print("https://github.com/GiantLuigi4/TScript/")
     if line > len(list(method)):
         raise BadGoToError(
             "Execution of method "
@@ -174,7 +177,8 @@ def run_line(method, line, method_object, markers, variables):
         time.sleep(int(parse_value(func.replace('sleepSeconds:', ""), method_object, markers, variables)))
     # CALL AND PARSE
     elif func.startswith('callAndParse:'):
-        method_loader.load_or_get(func.replace('callAndParse:', '')).execute()
+        method_loader.load_or_get(parse_value_full(func.replace('callAndParse:', ''), method, markers, variables))\
+            .execute()
     # CALL ANOTHER FILE
     elif func.startswith('call:'):
         method_loader.load_or_get(func.replace('call:', '')).execute()
@@ -436,10 +440,6 @@ def parse_whole_condition(condition, method_object, markers, variables):
     raise RuntimeError("Tried to parse boolean out of text " + str(condition))
 
 
-def get_var(name, method_object):
-    return method_object.variables.get(name, "N\\A")
-
-
 def parse_condition(condition, method_object, markers, variables):
     condition_without_not = condition
     # NOT
@@ -507,15 +507,11 @@ def parse_value_full(text, method_object, markers, variables):
         var = variables.get(line, "N\\A")
         if var != "N\\A":
             return str(var)
-    val = get_var(text, method_object)
-    if val != "N\\A":
+    val = parse_string(text)
+    if val != 'NAS':
         return val
     else:
-        val = parse_string(text)
-        if val != 'NAS':
-            return val
-        else:
-            return parse_value(text, method_object, markers, variables)
+        return parse_value(text, method_object, markers, variables)
 
 
 def replace_last_char(text):

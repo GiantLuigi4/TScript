@@ -1,7 +1,7 @@
 from python import method_loader
 
 
-# method_built = method_loader.load_or_get("ExampleMain.tscript")
+# method_built = method_loader.load_or_get("ExampleMain.tscr")
 # method_built = method_loader.load_or_get("EqualsTest.tscr")
 # method_built = method_loader.load_or_get("MarkersTest.tscr")
 # method_built = method_loader.load_or_get("MarkersTwo.tscr")
@@ -15,5 +15,5 @@ from python import method_loader
 
 
 # Here's how you call a method from python
-method_built = method_loader.load_or_get("SnakeGame.tscr")
+method_built = method_loader.load_or_get("Caller.tscript")
 method_built.execute()

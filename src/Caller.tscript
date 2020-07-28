@@ -1,0 +1,18 @@
+def:name,input
+
+m:name+''
+
+ifNotSkip>2:r:(name=='end')
+    exit
+
+m:name+'.tscr'
+ifNotSkip>2:r:(name=='Snake.tscr')
+    m:name='SnakeGame.tscr'
+
+def:execName,'Examples\'
+m:execName+name
+
+callAndParse:execName
+
+reload
+goto:0

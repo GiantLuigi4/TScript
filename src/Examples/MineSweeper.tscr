@@ -1,0 +1,6 @@
+def:mineListXText,'minesX'
+def:mineListYText,'minesY'
+saynl:'Width: '
+def:width,input
+saynl:'Height: '
+def:height,input

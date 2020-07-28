@@ -101,7 +101,14 @@ mark:start loop
         gotoMark:CheckAndHandleInput
     unmark:preCallCheckAndHandleInput
     //Handle death on edge of board and manual end
-    ifNotSkip>7:r:(move=='end') or r:(headX<0) or r:(headY<0) or r:(headX>Board_Height) or r:(headY>Board_Width)
+    ifNotSkip>7:r:(headX<0) or r:(headY<0) or r:(headX>Board_Height) or r:(headY>Board_Width)
+        say:''
+        say:''
+        say:'You hit the edge.'
+        saynl:'Your score:'
+        sayAndParse:segments
+        gotoEnd
+    ifNotSkip>7:r:(move=='end')
         say:''
         say:''
         say:''
@@ -135,7 +142,7 @@ mark:start loop
     destroy:segCheck
     //New segment has been ignored I think? Can't remember how important this variable is
     m:justAddedSegment=0
-    //Display (I really cannot commentate more on this, there's way too much)
+    //Display (I really cannot commentate more on this, there's way too much, and it's a mess)
     def:x_loop,0
     unmark:start_loop_print_x
     def:display,''
@@ -157,15 +164,18 @@ mark:start loop
                         def:segY,'segY'
                         m:segX+segCheck
                         m:segY+segCheck
-                        ifNotSkip>11:r:(%segX==x_loop) and r:(%segY==y_loop)
-                            ifSkip>10:r:(segmentsInTile>=1)
+                        ifNotSkip>14:r:(%segX==x_loop) and r:(%segY==y_loop)
+                            ifSkip>13:r:(segmentsInTile>=1)
                                 ifSkip>6:r:(appleX==x_loop) and r:(appleY==y_loop)
                                     ifNotSkip>3:r:(segCheck==segments)
                                         m:display+'c'
                                     skip:2
                                         m:display+'o'
-                                skip:3
-                                    m:display+'0'
+                                skip:6
+                                    ifNotSkip>3:r:(segCheck==segments)
+                                        m:display+'C'
+                                    skip:2
+                                        m:display+'0'
                                     m:appleSegment=segCheck
                             segmentsInTile++
                         segCheck++
@@ -177,9 +187,12 @@ mark:start loop
                         skip:2
                             m:display+'a'
                     destroy:segmentsInTile
-                skip:3
+                skip:6
                 mark:else
-                    m:display+'O'
+                    ifSkip>3:r:(appleX==x_loop) and r:(appleY==y_loop)
+                        m:display+'Q'
+                    skip:2
+                        m:display+'O'
             m:display+''
             m:y_loop+1
             ifGotoMarker>start_loop_print_Y:r:(y_loop<=Board_Width)
@@ -195,7 +208,7 @@ mark:start loop
     ifNotSkip>7:r:(isDead==1)
         sayAndParse:''
         sayAndParse:''
-        sayAndParse:''
+        sayAndParse:'You bit your own tail.'
         saynl:'Your score:'
         sayAndParse:segments
         gotoEnd
@@ -228,6 +241,7 @@ mark:start loop
         destroy:rand2
         //Apple segment = 0 to avoid glitches
         m:appleSegment=0
+        //Destroy variables
         destroy:newSegX
         destroy:newSegY
         m:justAddedSegment+1
