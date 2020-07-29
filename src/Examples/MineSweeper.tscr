@@ -35,12 +35,26 @@ mark:create_mines_loop
 ifGotoMarker>create_mines_loop:r:(mineCreate<=mines)
 unmark:create_mines_loop
 
+def:x,0
+saynl:'  '
+mark:loopX1
+    saynl:' '
+    sayAndParsenl:x
+    x++
+ifGotoMarker>loopX1:r:(x<=width)
+unmark:loopX1
+destroy:x
+
+say:''
+
 def:y,0
 unmark:loopY
 mark:loopY
     def:x,0
-    unmark:loopX
-    mark:loopX
+    sayAndParsenl:y
+    saynl:'|'
+    unmark:loopX2
+    mark:loopX2
         def:mine,'mine_at_X_'
         m:mine+x
         m:mine+'_Y_'
@@ -52,7 +66,7 @@ mark:loopY
             saynl:' 0'
         destroy:mine
         x++
-    ifGotoMarker>loopX:r:(x<=width)
+    ifGotoMarker>loopX2:r:(x<=width)
     say:''
     destroy:x
     y++

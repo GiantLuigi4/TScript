@@ -1,4 +1,5 @@
 import random
+from traceback import *
 
 import time
 
@@ -31,7 +32,8 @@ def run(method_object, line=0):
             elif str(line).startswith('return:'):
                 return line.replace('return:', '', 1)
     except Exception as exc:
-        print(exc)
+        print_tb(exc.__traceback__)
+        print("Error: ", str(exc))
         print('\n\n')
         print("Error while interpreting line " + str(line))
         print("If you thing this error should not be occuring,")
@@ -241,6 +243,18 @@ def run_line(method, line, method_object, markers, variables):
     # GET A VALUE, AND DO NOTHING WITH IT
     elif func.startswith('runVal:'):
         parse_value_full(func.replace('runVal:', '', 1), method_object, markers, variables)
+    # # ADD 1 TO A VARIABLE
+    # elif func.endswith('++'):
+    #     var = variables.get(func.replace("++", '', 1), "N\\A")
+    #     if var != "N\\A" and str(var).isnumeric():
+    #         name = func.replace('++', '', 1)
+    #         variables[name] = int(variables[name]) + 1
+    # # SUBTRACT 1 FROM A VARIABLE
+    # elif func.endswith('--'):
+    #     var = variables.get(func.replace("--", '', 1), "N\\A")
+    #     if var != "N\\A" and str(var).isnumeric():
+    #         name = func.replace('--', '', 1)
+    #         variables[name] = int(variables[name]) - 1
     return line + 1
 
 

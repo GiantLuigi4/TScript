@@ -47,6 +47,7 @@ def:appleX,rand=0:Board_Height
 def:appleY,rand=0:Board_Width
 //Segment which contains the apple (if one contains the apple), elsewise this variable is just 0
 def:appleSegment,0
+def:lastAppleSegment,0
 def:justAddedSegment,0
 //Variable for weather or not the player is dead
 def:isDead,0
@@ -134,6 +135,8 @@ mark:start loop
         m:segY_1+segCheck
         ifNotSkip>2:r:(%segX_1==headX) and r:(%segY_1==headY)
             m:isDead=1
+        ifNotSkip>2:r:(%segX_1==appleX) and r:(%segY_1==appleY)
+            m:appleSegment=segCheck
         segCheck++
         destroy:segX_1
         destroy:segY_1
@@ -164,19 +167,21 @@ mark:start loop
                         def:segY,'segY'
                         m:segX+segCheck
                         m:segY+segCheck
-                        ifNotSkip>14:r:(%segX==x_loop) and r:(%segY==y_loop)
-                            ifSkip>13:r:(segmentsInTile>=1)
-                                ifSkip>6:r:(appleX==x_loop) and r:(appleY==y_loop)
+                        ifNotSkip>16:r:(%segX==x_loop) and r:(%segY==y_loop)
+                            ifSkip>15:r:(segmentsInTile>=1)
+                                ifSkip>6:r:(appleX==x_loop) and r:(appleY==y_loop) or r:(lastAppleSegment==segCheck)
                                     ifNotSkip>3:r:(segCheck==segments)
                                         m:display+'c'
                                     skip:2
                                         m:display+'o'
-                                skip:6
+                                skip:8
                                     ifNotSkip>3:r:(segCheck==segments)
                                         m:display+'C'
-                                    skip:2
-                                        m:display+'0'
-                                    m:appleSegment=segCheck
+                                    skip:5
+                                        ifSkip>3:r:(lastAppleSegment==segCheck)
+                                            m:display+'0'
+                                        skip:2
+                                            m:display+'D'
                             segmentsInTile++
                         segCheck++
                     ifGotoMarker>loopSegments:r:(segCheck<=segments)
@@ -187,10 +192,13 @@ mark:start loop
                         skip:2
                             m:display+'a'
                     destroy:segmentsInTile
-                skip:6
+                skip:9
                 mark:else
-                    ifSkip>3:r:(appleX==x_loop) and r:(appleY==y_loop)
-                        m:display+'Q'
+                    ifSkip>6:r:(appleX==x_loop) and r:(appleY==y_loop)
+                        ifSkip>3:r:(isDead==1)
+                            m:display+'Q'
+                        skip:4
+                            m:display+'U'
                     skip:2
                         m:display+'O'
             m:display+''
@@ -214,6 +222,7 @@ mark:start loop
         gotoEnd
     //Define segment and length variables for apple detection and printing
     def:prevAppleSegment,appleSegment
+    m:lastAppleSegment=appleSegment
     def:prevLength,segments
     //Get the coords of the segment which the apple is in
     def:appleSegX,'segX'
@@ -241,6 +250,7 @@ mark:start loop
         destroy:rand2
         //Apple segment = 0 to avoid glitches
         m:appleSegment=0
+        m:lastAppleSegment=0
         //Destroy variables
         destroy:newSegX
         destroy:newSegY
