@@ -12,7 +12,12 @@ ifNotSkip>2:r:(name=='Snake.tscr')
 def:execName,'Examples\'
 m:execName+name
 
+
 callAndParse:execName
+
+saynl:'Finished executing '
+sayAndParse:execName
+wait:1000
 
 reload
 goto:0

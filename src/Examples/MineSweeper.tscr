@@ -1,6 +1,59 @@
-def:mineListXText,'minesX'
-def:mineListYText,'minesY'
+//Get width
 saynl:'Width: '
 def:width,input
+m:width-1
+//Get height
 saynl:'Height: '
 def:height,input
+m:height-1
+//Get mine count
+saynl:'Mines: '
+def:mines,input
+m:mines+1
+i:mines
+
+def:mineCreate,0
+mark:create_mines_loop
+    def:newMine,'mine_at_X_'
+
+    //Randomize X
+    def:rand1,rand=0:height
+    m:newMine+rand1
+
+    //Randomize Y
+    m:newMine+'_Y_'
+    def:rand2,rand=0:height
+    m:newMine+rand2
+
+    destroy:rand1
+    destroy:rand2
+    //Create mine
+    ifSkip>3:r:(%mine=='True')
+        mineCreate++
+        def:%newMine,'True'
+    destroy:newMine
+ifGotoMarker>create_mines_loop:r:(mineCreate<=mines)
+unmark:create_mines_loop
+
+def:y,0
+unmark:loopY
+mark:loopY
+    def:x,0
+    unmark:loopX
+    mark:loopX
+        def:mine,'mine_at_X_'
+        m:mine+x
+        m:mine+'_Y_'
+        m:mine+y
+//        sayAndParsenl:%mine
+        ifSkip>3:r:(%mine=='True')
+            saynl:' O'
+        skip:2
+            saynl:' 0'
+        destroy:mine
+        x++
+    ifGotoMarker>loopX:r:(x<=width)
+    say:''
+    destroy:x
+    y++
+ifGotoMarker>loopY:r:(y<=height)

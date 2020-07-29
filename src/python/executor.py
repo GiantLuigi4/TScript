@@ -68,17 +68,11 @@ def run_line(method, line, method_object, markers, variables):
     elif func.startswith('rewind:'):
         return line - handle_goto(func.replace('rewind:', ''), method_object, markers, variables)
     # SKIP
-    elif func.startswith('skip:'):
-        return line + handle_goto(func.replace('skip:', ''), method_object, markers, variables)
-    # SKIP
-    elif func.startswith('goForward:'):
-        return line + handle_goto(func.replace('goForward:', ''), method_object, markers, variables)
+    elif func.startswith('sk:'):
+        return line + handle_goto(func.replace('sk:', ''), method_object, markers, variables)
     # GOTO
-    elif func.startswith('goTo:'):
-        return handle_goto(func.replace('goTo:', ''), method_object, markers, variables)
-    # GOTO
-    elif func.startswith('goto:'):
-        return handle_goto(func.replace('goto:', ''), method_object, markers, variables)
+    elif func.startswith('gt:'):
+        return handle_goto(func.replace('gt:', ''), method_object, markers, variables)
     # SAY
     elif func.startswith('say:\''):
         print(func.replace("say:'", "", 1).replace('\'', '', 1))
@@ -164,11 +158,8 @@ def run_line(method, line, method_object, markers, variables):
                                  variables):
             return line + num
     # WAIT
-    elif func.startswith('wait:'):
-        time.sleep(int(parse_value(func.replace('sleep:', ""), method_object, markers, variables) / 1000))
-    # SLEEP (more precise version of wait)
-    elif func.startswith('sleep:'):
-        time.sleep(int(parse_value(func.replace('sleep:', ""), method_object, markers, variables) / 1000))
+    elif func.startswith('w:'):
+        time.sleep((float(parse_value(func.replace('w:', ""), method_object, markers, variables)) / 1000))
     # WAIT SECONDS
     elif func.startswith('waitSeconds:'):
         time.sleep(int(parse_value(func.replace('waitSeconds:', ""), method_object, markers, variables)))
@@ -193,10 +184,7 @@ def run_line(method, line, method_object, markers, variables):
         else:
             raise SystemExit(0)
     # GOTO END OF SCRIPT
-    elif func.startswith("gotoEnd"):
-        return "end"
-    # GOTO END OF SCRIPT
-    elif func.startswith("goToEnd"):
+    elif func.startswith("ge"):
         return "end"
     # MARK
     elif func.startswith("mark:"):
@@ -205,28 +193,21 @@ def run_line(method, line, method_object, markers, variables):
             raise DoubledMarker("Doubled marker on line " + str(line) + " of method " + str(method_object.name))
         markers.update({func.replace("mark:", '', 1): line + 1})
     # DEFINE A VARIABLE
-    elif func.startswith("def:"):
-        var = variables.get(func.replace("def:", '', 1), "N\\A")
+    elif func.startswith("dv:"):
+        func_new = func.replace('dv:', '', 1)
+        var = variables.get(func_new, "N\\A")
         if var != "N\\A":
             raise DoubledVariable("Doubled variable on line " + str(line) + " of method " + str(method_object.name))
-        name = func.replace("def:", '', 1).split(',')[0]
+        name = func_new.split(',')[0]
         if name.startswith('%'):
             name = str(
-                parse_value_full(func.replace("def:", '', 1).split(',')[0].replace("%", "", 1), method_object,
+                parse_value_full(func_new.split(',')[0].replace("%", "", 1), method_object,
                                  markers, variables))
             if str(name) == 'False':
-                name = func.replace("def:", '', 1).split(',')[0]
+                name = func_new.split(',')[0]
         variables.update(
-            {name: parse_value_full(func.replace('def:', '', 1).split(',')[1],
+            {name: parse_value_full(func.replace('dv:', '', 1).split(',')[1],
                                     method_object, markers, variables)})
-    # DEFINE A VARIABLE
-    elif func.startswith("define:"):
-        var = variables.get(func.replace("define:", '', 1), "N\\A")
-        if var != "N\\A":
-            raise DoubledVariable("Doubled variable on line " + str(line) + " of method " + str(method_object.name))
-        variables.update(
-            {func.replace("define:", '', 1).split(',')[0]: parse_value_full(
-                func.replace('define:', '', 1).split(',')[1], method_object, markers, variables)})
     # DESTROY A VARIABLE
     elif func.startswith("destroy:"):
         var = variables.get(func.replace("destroy:", '', 1), "N\\A")
@@ -238,31 +219,12 @@ def run_line(method, line, method_object, markers, variables):
         if mark != "N\\A":
             markers.pop(func.replace('unmark:', '', 1))
     # GOTO A MARKER
-    elif func.startswith("gotoMark:"):
-        marked_label = markers.get(func.replace("gotoMark:", '', 1), "N\\A")
+    elif func.startswith("gtm:"):
+        marked_label = markers.get(func.replace("gtm:", '', 1), "N\\A")
         if marked_label != "N\\A":
             return marked_label
         else:
-            return find_marker(func.replace("gotoMark:", '', 1), method, line, method_object.name)
-    # GOTO A MARKER
-    elif func.startswith("goToMark:"):
-        marked_label = markers.get(func.replace("goToMark:", '', 1), "N\\A")
-        if marked_label != "N\\A":
-            return marked_label
-        else:
-            return find_marker(func.replace("goToMark:", '', 1), method, line, method_object.name)
-    # ADD 1 TO A VARIABLE
-    elif func.endswith('++'):
-        var = variables.get(func.replace("++", '', 1), "N\\A")
-        if var != "N\\A" and str(var).isnumeric():
-            name = func.replace('++', '', 1)
-            variables[name] = int(variables[name]) + 1
-    # SUBTRACT 1 FROM A VARIABLE
-    elif func.endswith('--'):
-        var = variables.get(func.replace("--", '', 1), "N\\A")
-        if var != "N\\A" and str(var).isnumeric():
-            name = func.replace('--', '', 1)
-            variables[name] = int(variables[name]) - 1
+            return find_marker(func.replace("gtm:", '', 1), method, line, method_object.name)
     # AWAIT USER INPUT
     elif func == 'await':
         input('')
