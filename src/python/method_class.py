@@ -9,7 +9,6 @@ class Method:
         super().__init__()
         self.name = name
         self.list = function
-        self.variables = {}
 
     def execute(self):
         line = 0
