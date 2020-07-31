@@ -16,18 +16,15 @@ class Mapping:
         self.split = split
 
 
-class Var:
-    object_held = ''
+class Function:
+    name = ''
 
-    def __init__(self, value='') -> None:
+    def __init__(self, name) -> None:
         super().__init__()
-        self.object_held = value
+        self.name = name
 
-    def set(self, value):
-        self.object_held = value
-
-    def get(self):
-        return self.object_held
+    def execute(self, args):
+        pass
 
 
 mapper = [
@@ -44,6 +41,13 @@ mapper = [
 ]
 
 
+functions = []
+
+
+def register_func(func):
+    functions.append(func)
+
+
 def remap(input_func):
     if input_func == '':
         return ''
@@ -58,6 +62,10 @@ def remap(input_func):
     elif input_func.endswith('++'):
         input_func = 'm:' + input_func.replace('+', '') + '+' + str((input_func.count('+') - 1))
     return input_func
+
+
+def register_mapping(names, mapping, splitter=':'):
+    mapper.append(Mapping(names, mapping, splitter))
 
 
 def run_line(func, args, method, line, method_object, markers, variables):
@@ -117,3 +125,7 @@ def run_line(func, args, method, line, method_object, markers, variables):
     elif func == 'call':
         method_loader.load_or_get(args).execute()
         return line + 1
+    else:
+        for function in functions:
+            if function.name == func:
+                function.execute(args)
