@@ -3,7 +3,7 @@ from traceback import *
 
 import time
 
-from python import method_loader
+from python import function_registry
 from python.errors import *
 
 
@@ -61,36 +61,23 @@ def run_line(method, line, method_object, markers, variables):
         print("Text: " + str(func))
     if len(func) == 0:
         return line + 1
+    if func.count(':') >= 1:
+        func_split = func.split(':', 1)
+        output = function_registry.run_line(func_split[0], func_split[1], method, line, method_object, markers,
+                                            variables)
+        if type(output) != type(None):
+            return output
     if func.startswith('m:'):
         math(func.replace('m:', '', 1), method_object, markers, variables)
     # REWIND
-    elif func.startswith('goBack:'):
-        return line - handle_goto(func.replace('goBack:', ''), method_object, markers, variables)
-    # REWIND
-    elif func.startswith('rewind:'):
-        return line - handle_goto(func.replace('rewind:', ''), method_object, markers, variables)
+    elif func.startswith('rw:'):
+        return line - handle_goto(func.replace('rw:', ''), method_object, markers, variables)
     # SKIP
     elif func.startswith('sk:'):
         return line + handle_goto(func.replace('sk:', ''), method_object, markers, variables)
     # GOTO
     elif func.startswith('gt:'):
         return handle_goto(func.replace('gt:', ''), method_object, markers, variables)
-    # SAY
-    elif func.startswith('say:\''):
-        print(func.replace("say:'", "", 1).replace('\'', '', 1))
-        return line + 1
-    # SAY NO RETURN
-    elif func.startswith('saynl:\''):
-        print(func.replace("saynl:'", "", 1).replace('\'', '', 1), end='')
-        return line + 1
-    # SAY VALUE
-    elif func.startswith('sayAndParse:'):
-        print(parse_value_full(func.replace("sayAndParse:", "", 1), method_object, markers, variables))
-        return line + 1
-    # SAY VALUE NO RETURN
-    elif func.startswith('sayAndParsenl:'):
-        print(parse_value_full(func.replace("sayAndParsenl:", "", 1), method_object, markers, variables), end='')
-        return line + 1
     # REWIND IF CONDITION IS FALSE
     elif func.startswith('ifNotRewind>'):
         num = get_num(func.replace("ifNotRewind>", "", 1))
@@ -159,22 +146,6 @@ def run_line(method, line, method_object, markers, variables):
         if parse_whole_condition(func.replace("ifSkip>", "", 1).replace(str(num) + ":", '', 1), method_object, markers,
                                  variables):
             return line + num
-    # WAIT
-    elif func.startswith('w:'):
-        time.sleep((float(parse_value(func.replace('w:', ""), method_object, markers, variables)) / 1000))
-    # WAIT SECONDS
-    elif func.startswith('waitSeconds:'):
-        time.sleep(int(parse_value(func.replace('waitSeconds:', ""), method_object, markers, variables)))
-    # WAIT SECONDS
-    elif func.startswith('sleepSeconds:'):
-        time.sleep(int(parse_value(func.replace('sleepSeconds:', ""), method_object, markers, variables)))
-    # CALL AND PARSE
-    elif func.startswith('callAndParse:'):
-        method_loader.load_or_get(parse_value_full(func.replace('callAndParse:', ''), method, markers, variables))\
-            .execute()
-    # CALL ANOTHER FILE
-    elif func.startswith('call:'):
-        method_loader.load_or_get(func.replace('call:', '')).execute()
     # PRINT EXECUTING FILE
     elif func.startswith('currentFile'):
         print("Current file: " + str(method_object.name))
@@ -185,9 +156,6 @@ def run_line(method, line, method_object, markers, variables):
             raise SystemExit(get_num(func.replace('exit:', '')))
         else:
             raise SystemExit(0)
-    # GOTO END OF SCRIPT
-    elif func.startswith("ge"):
-        return "end"
     # MARK
     elif func.startswith("mark:"):
         marked_label = markers.get(func.replace("mark:", '', 1), "N\\A")
@@ -227,22 +195,12 @@ def run_line(method, line, method_object, markers, variables):
             return marked_label
         else:
             return find_marker(func.replace("gtm:", '', 1), method, line, method_object.name)
-    # AWAIT USER INPUT
-    elif func == 'await':
-        input('')
     # CAST TO INT
     elif func.startswith('i:'):
         var = variables.get(func.replace("i:", '', 1), "N\\A")
         if var != "N\\A":
             name = func.replace('i:', '', 1)
             variables[name] = int(get_num(str(variables[name])))
-    # RELOAD
-    elif func == 'reload':
-        method_loader.method_dictionary.clear()
-        return 'reload:' + str(line)
-    # GET A VALUE, AND DO NOTHING WITH IT
-    elif func.startswith('runVal:'):
-        parse_value_full(func.replace('runVal:', '', 1), method_object, markers, variables)
     # # ADD 1 TO A VARIABLE
     # elif func.endswith('++'):
     #     var = variables.get(func.replace("++", '', 1), "N\\A")

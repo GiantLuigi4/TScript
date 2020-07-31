@@ -1,0 +1,3 @@
+pyExec:print('hello')
+pyExec:from tkinter import *\nroot = Tk()\nroot.mainloop()
+pyfi:../Examples/py_fi_call.py
