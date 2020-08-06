@@ -6,9 +6,13 @@ def:end,input
 mark:start
     def:fizzorbuzz,0
 
+    //copy numbet to a new variable check
     def:check,number
+    //divide check by 3
     m:check/3
+    //copy check to a new variable, check 2
     def:check2,check
+    //round check 2
     r:check2
 
     ifNotSkip>3:r:(check==check2)
