@@ -201,6 +201,18 @@ def run_line(method, line, method_object, markers, variables):
         if var != "N\\A":
             name = func.replace('i:', '', 1)
             variables[name] = int(get_num(str(variables[name])))
+    # CAST TO FLOAT
+    elif func.startswith('f:'):
+        var = variables.get(func.replace("f:", '', 1), "N\\A")
+        if var != "N\\A":
+            name = func.replace('f:', '', 1)
+            variables[name] = float(get_num(str(variables[name])))
+    # ROUND
+    elif func.startswith('r:'):
+        var = variables.get(func.replace("r:", '', 1), "N\\A")
+        if var != "N\\A":
+            name = func.replace('r:', '', 1)
+            variables[name] = float(int(get_num(str(variables[name]))))
     # # ADD 1 TO A VARIABLE
     # elif func.endswith('++'):
     #     var = variables.get(func.replace("++", '', 1), "N\\A")

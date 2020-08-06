@@ -1,0 +1,39 @@
+//https://www.youtube.com/watch?v=QPZ0pIK_wsc
+
+def:number,1
+def:end,input
+
+mark:start
+    def:fizzorbuzz,0
+
+    def:check,number
+    m:check/3
+    def:check2,check
+    r:check2
+
+    ifNotSkip>3:r:(check==check2)
+        saynl:'Fizz'
+        m:fizzorbuzz=1
+
+    m:check=number
+    m:check/5
+    m:check2=check
+    r:check2
+
+    ifNotSkip>6:r:(check==check2)
+        ifNotSkip>3:r:(fizzorbuzz==0)
+            saynl:'Buzz'
+        skip:2
+            saynl:'buzz'
+        m:fizzorbuzz=1
+
+    destroy:check
+    destroy:check2
+
+    ifNotSkip>2:r:(fizzorbuzz==0)
+        sayAndParsenl:number
+
+    say:''
+
+    number++
+ifGotoMarker>start:r:(number<=end)
