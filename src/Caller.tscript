@@ -9,9 +9,8 @@ m:name+'.tscr'
 ifNotSkip>2:r:(name=='Snake.tscr')
     m:name='SnakeGame.tscr'
 
-def:execName,'Examples\'
+def:execName,'Examples/'
 m:execName+name
-
 
 callAndParse:execName
 

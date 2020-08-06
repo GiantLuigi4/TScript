@@ -689,6 +689,6 @@ def parse_number(text, method_object, markers, variables):
             text1_3 = parse_value_full(text1_2, method_object, markers, variables)
             text2_3 = parse_value_full(text2_2, method_object, markers, variables)
             text = text.replace(str(text1_2) + '-' + str(text2_2), str(subtract(str(text1_3), str(text2_3))))
-        return float(text)
+        return try_to_num(text)
     else:
         return "NAN"

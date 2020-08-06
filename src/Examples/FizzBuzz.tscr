@@ -1,5 +1,5 @@
+skip:3
 //https://www.youtube.com/watch?v=QPZ0pIK_wsc
-
 //Should probably say that “saynl” means “say no line”
 
 def:number,1
@@ -8,25 +8,19 @@ def:end,input
 mark:start
     def:fizzorbuzz,0
 
-    //copy numbet to a new variable check
-    def:check,number
-    //divide check by 3
-    m:check/3
-    //copy check to a new variable, check 2
-    def:check2,check
-    //round check 2
-    r:check2
+    //Copy number to a new variable, check
+    def:check,number/3
+    //Round check
+    r:check
 
-    ifNotSkip>3:r:(check==check2)
+    ifNotSkip>3:r:(number/3==check)
         saynl:'Fizz'
         m:fizzorbuzz=1
 
-    m:check=number
-    m:check/5
-    m:check2=check
-    r:check2
+    m:check=number/5
+    r:check
 
-    ifNotSkip>6:r:(check==check2)
+    ifNotSkip>6:r:(number/5==check)
         ifNotSkip>3:r:(fizzorbuzz==0)
             saynl:'Buzz'
         skip:2
@@ -34,7 +28,6 @@ mark:start
         m:fizzorbuzz=1
 
     destroy:check
-    destroy:check2
 
     ifNotSkip>2:r:(fizzorbuzz==0)
         sayAndParsenl:number

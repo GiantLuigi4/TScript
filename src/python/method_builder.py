@@ -24,11 +24,17 @@ def map_func(function_text):
 def build_from_file(name):
     name = str(name)
     if path.exists(name):
-        f = open(name)
+        f = open(name, encoding="utf8")
         lines = []
         lines.clear()
-        for line in f.readlines():
-            lines.append(line.rstrip())
+        line = ''
+        try:
+            for line in f.readlines():
+                lines.append(line.rstrip())
+        except Exception as exc:
+            print('File Name: ' + name)
+            print('Reading Line: ' + line)
+            raise exc
         f.close()
         return build(name, lines)
     else:
