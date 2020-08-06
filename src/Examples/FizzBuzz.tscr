@@ -1,5 +1,7 @@
 //https://www.youtube.com/watch?v=QPZ0pIK_wsc
 
+//Should probably say that “saynl” means “say no line”
+
 def:number,1
 def:end,input
 
