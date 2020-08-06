@@ -1,0 +1,10 @@
+say:'Start VarCallTest'
+
+def:hello,'hello'
+sayAndParse:hello
+
+callWithVars:Examples\VarCallTest2.tscr
+
+sayAndParse:hello
+
+say:'End VarCallTest'

@@ -1,17 +1,17 @@
 import random
 from traceback import *
 
+import math
 import time
 
 from python import function_registry
 from python.errors import *
 
 
-def run(method_object, line=0):
+def run(method_object, line=0, variables={}):
     method = method_object.list
     last_line = 0
     labels = {}
-    variables = {}
     try:
         while line < len(list(method)):
             if line < 0:
@@ -68,7 +68,7 @@ def run_line(method, line, method_object, markers, variables):
         if type(output) != type(None):
             return output
     if func.startswith('m:'):
-        math(func.replace('m:', '', 1), method_object, markers, variables)
+        calc(func.replace('m:', '', 1), method_object, markers, variables)
     # REWIND
     elif func.startswith('rw:'):
         return line - handle_goto(func.replace('rw:', ''), method_object, markers, variables)
@@ -234,29 +234,31 @@ def get_variable_name(text, variables):
     return text
 
 
-def math(text, method_object, markers, variables):
+def calc(text, method_object, markers, variables):
     if text.count('=') >= 1:
         args = text.split('=')
         variables[get_variable_name(args[0], variables)] = parse_value_full(args[1], method_object, markers, variables)
     elif text.count('+') >= 1:
         args = text.split('+')
         arg1 = variables[get_variable_name(args[0], variables)]
-        if str(arg1).isnumeric():
-            arg1 = int(arg1)
-            variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
-                                                                                           markers, variables))
-        elif str(arg1).isdecimal():
-            arg1 = float(arg1)
-            variables[get_variable_name(args[0], variables)] = arg1 + float(parse_value_full(args[1], method_object,
-                                                                                             markers, variables))
-        else:
-            if args[1].isnumeric():
-                variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
-                                                                                               markers, variables))
-            else:
-                variables[get_variable_name(args[0], variables)] = str(arg1) + str(parse_value_full(args[1],
-                                                                                                    method_object,
-                                                                                                    markers, variables))
+        variables[get_variable_name(args[0], variables)] = add(arg1, parse_value_full(args[1], method_object,
+                                                                                      markers, variables))
+        # if str(arg1).isnumeric():
+        #     arg1 = int(arg1)
+        #     variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
+        #                                                                                    markers, variables))
+        # elif str(arg1).isdecimal():
+        #     arg1 = float(arg1)
+        #     variables[get_variable_name(args[0], variables)] = arg1 + float(parse_value_full(args[1], method_object,
+        #                                                                                      markers, variables))
+        # else:
+        #     if args[1].isnumeric():
+        #         variables[get_variable_name(args[0], variables)] = arg1 + int(parse_value_full(args[1], method_object,
+        #                                                                                        markers, variables))
+        #     else:
+        #         variables[get_variable_name(args[0], variables)] = str(arg1) + str(parse_value_full(args[1],
+        #                                                                                             method_object,
+        #                                                                                             markers, variables))
     elif text.count('-') >= 1:
         args = text.split('-')
         arg1 = variables[args[0]]
@@ -488,13 +490,51 @@ string_type = type(0)
 bool_type = type(True)
 
 
+def try_to_num(text):
+    if str(text).isnumeric():
+        return int(str(text))
+    elif str(text).count('.') > 0:
+        args = str(text).split('.')
+        text1 = get_num(args[0])
+        text2 = get_num(args[1])
+        if str(text1) + '.' + str(text2) == str(text):
+            return float(str(text))
+    return 'NAN'
+
+
 def add(text1, text2):
-    if type(text1) == type(text2):
+    if str(try_to_num(text1)) == text1 and str(try_to_num(text2)) == text2:
+        return try_to_num(text1) + try_to_num(text2)
+    elif type(text1) == type(text2):
         return text1 + text2
     elif type(text1) == str:
         return text1 + str(text2)
     elif type(text2) == str:
         return str(text1) + text2
+
+
+def power(text1, text2):
+    if str(text1).isnumeric() and str(text2).isnumeric():
+        return math.pow(int(text1), int(text2))
+    elif str(text1).isdecimal() or str(text2).isdecimal():
+        return math.pow(float(text1), float(text2))
+    raise ArithmeticError('Tried to use power operator on a non number value')
+
+
+def multiply(text1, text2):
+    if str(text1).isnumeric() and str(text2).isnumeric():
+        return int(text1) * int(text2)
+    elif str(text1).isdecimal() or str(text2).isdecimal():
+        return float(text1) * float(text2)
+    raise ArithmeticError('Tried to use multiplication operator on a non number value: ' + (text1 + "*" + text2))
+
+
+def divide(text1, text2):
+    if str(text1).isnumeric() and str(text2).isnumeric():
+        return int(text1) / int(text2)
+    elif str(text1).isdecimal() or str(text2).isdecimal():
+        return float(text1) / float(text2)
+    raise ArithmeticError('Tried to use division operator on a non number value')
 
 
 def subtract(text1, text2):
@@ -520,6 +560,14 @@ def parse_number(text, method_object, markers, variables):
         return -parse_number(text.replace('-', '', 1), method_object, markers, variables)
     if text.isnumeric():
         return int(text)
+    elif text.isdecimal():
+        return float(text)
+    elif text.count('.') > 0:
+        args = text.split('.')
+        text1 = get_num(args[0])
+        text2 = get_num(args[1])
+        if str(text1) + '.' + str(text2) == text:
+            return float(text)
     # TIME NANO
     elif text == 'time:nano':
         return int(int(time.time_ns()) / 100)
@@ -570,5 +618,77 @@ def parse_number(text, method_object, markers, variables):
         else:
             print(range_list)
             print(text)
+    elif \
+            text.count('+') > 0 or \
+                    text.count('-') > 0 or \
+                    text.count('*') > 0 or \
+                    text.count('/') > 0 or \
+                    text.count('^') > 0:
+        while text.count('^') > 0:
+            args = text.split('^', 1)
+            text1 = args[0]
+            text2 = args[1]
+            text1 = text1.replace('-', ' ').replace('+', ' ').replace('*', ' ').replace('^', ' ').replace('/', ' ')
+            text2 = text2.replace('-', ' ').replace('+', ' ').replace('*', ' ').replace('^', ' ').replace('/', ' ')
+            args = text1.split(' ')
+            text1_2 = args[len(args) - 1]
+            args = text2.split(' ')
+            text2_2 = args[0]
+            text1_3 = parse_value_full(text1_2, method_object, markers, variables)
+            text2_3 = parse_value_full(text2_2, method_object, markers, variables)
+            text = text.replace(str(text1_2) + '^' + str(text2_2), str(power(str(text1_3), str(text2_3))))
+        while text.count('*') > 0:
+            args = text.split('*', 1)
+            text1 = args[0]
+            text2 = args[1]
+            text1 = text1.replace('-', ' ').replace('+', ' ').replace('*', ' ').replace('/', ' ')
+            text2 = text2.replace('-', ' ').replace('+', ' ').replace('*', ' ').replace('/', ' ')
+            args = text1.split(' ')
+            text1_2 = args[len(args) - 1]
+            args = text2.split(' ')
+            text2_2 = args[0]
+            text1_3 = parse_value_full(text1_2, method_object, markers, variables)
+            text2_3 = parse_value_full(text2_2, method_object, markers, variables)
+            text = text.replace(str(text1_2) + '*' + str(text2_2), str(multiply(str(text1_3), str(text2_3))))
+        while text.count('/') > 0:
+            args = text.split('/', 1)
+            text1 = args[0]
+            text2 = args[1]
+            text1 = text1.replace('-', ' ').replace('+', ' ').replace('/', ' ')
+            text2 = text2.replace('-', ' ').replace('+', ' ').replace('/', ' ')
+            args = text1.split(' ')
+            text1_2 = args[len(args) - 1]
+            args = text2.split(' ')
+            text2_2 = args[0]
+            text1_3 = parse_value_full(text1_2, method_object, markers, variables)
+            text2_3 = parse_value_full(text2_2, method_object, markers, variables)
+            text = text.replace(str(text1_2) + '/' + str(text2_2), str(divide(str(text1_3), str(text2_3))))
+        while text.count('+') > 0:
+            args = text.split('+', 1)
+            text1 = args[0]
+            text2 = args[1]
+            text1 = text1.replace('-', ' ').replace('+', ' ')
+            text2 = text2.replace('-', ' ').replace('+', ' ')
+            args = text1.split(' ')
+            text1_2 = args[len(args) - 1]
+            args = text2.split(' ')
+            text2_2 = args[0]
+            text1_3 = parse_value_full(text1_2, method_object, markers, variables)
+            text2_3 = parse_value_full(text2_2, method_object, markers, variables)
+            text = text.replace(str(text1_2) + '+' + str(text2_2), str(add(str(text1_3), str(text2_3))))
+        while text.count('-') > 0:
+            args = text.split('-', 1)
+            text1 = args[0]
+            text2 = args[1]
+            text1 = text1.replace('-', ' ')
+            text2 = text2.replace('-', ' ')
+            args = text1.split(' ')
+            text1_2 = args[len(args) - 1]
+            args = text2.split(' ')
+            text2_2 = args[0]
+            text1_3 = parse_value_full(text1_2, method_object, markers, variables)
+            text2_3 = parse_value_full(text2_2, method_object, markers, variables)
+            text = text.replace(str(text1_2) + '-' + str(text2_2), str(subtract(str(text1_3), str(text2_3))))
+        return float(text)
     else:
         return "NAN"

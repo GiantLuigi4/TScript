@@ -1,0 +1,15 @@
+//Not sure how this winded up having all the lines be the same length, lol
+
+def:hello,5*3+6/4
+sayAndParse:hello
+m:hello+1*hello*5
+sayAndParse:hello
+
+destroy:hello
+
+def:hello,5*3+6/4
+sayAndParse:hello
+sayAndParse:1*hello*5
+sayAndParse:hello+1*hello*5
+
+destroy:hello

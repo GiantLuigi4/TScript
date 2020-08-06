@@ -1,0 +1,7 @@
+say:'Start VarCallTest2'
+
+sayAndParse:hello
+m:hello='hello2'
+sayAndParse:hello
+
+say:'End VarCallTest2'

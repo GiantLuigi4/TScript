@@ -119,11 +119,15 @@ def run_line(func, args, method, line, method_object, markers, variables):
     # CALL AND PARSE
     elif func == 'callAndParse':
         method_loader.load_or_get(executor.parse_value_full(args, method, markers, variables)) \
-            .execute()
+            .execute(variables={})
         return line + 1
     # CALL ANOTHER FILE
     elif func == 'call':
-        method_loader.load_or_get(args).execute()
+        method_loader.load_or_get(args).execute(variables={})
+        return line + 1
+    # CALL ANOTHER FILE WITH CURRENT VARIABLES
+    elif func == 'callWithVars':
+        method_loader.load_or_get(args).execute(variables=variables)
         return line + 1
     else:
         for function in functions:
