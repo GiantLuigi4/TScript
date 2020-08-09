@@ -1,6 +1,8 @@
 import random
 from traceback import *
 
+from os import path
+
 import math
 import time
 
@@ -168,15 +170,15 @@ def run_line(method, line, method_object, markers, variables):
         var = variables.get(func_new, "N\\A")
         if var != "N\\A":
             raise DoubledVariable("Doubled variable on line " + str(line) + " of method " + str(method_object.name))
-        name = func_new.split(',')[0]
+        name = func_new.split(',', 1)[0]
         if name.startswith('%'):
             name = str(
                 parse_value_full(func_new.split(',')[0].replace("%", "", 1), method_object,
                                  markers, variables))
             if str(name) == 'False':
-                name = func_new.split(',')[0]
+                name = func_new.split(',', 1)[0]
         variables.update(
-            {name: parse_value_full(func.replace('dv:', '', 1).split(',')[1],
+            {name: parse_value_full(func.replace('dv:', '', 1).split(',', 1)[1],
                                     method_object, markers, variables)})
     # DESTROY A VARIABLE
     elif func.startswith("destroy:"):
@@ -200,19 +202,19 @@ def run_line(method, line, method_object, markers, variables):
         var = variables.get(func.replace("i:", '', 1), "N\\A")
         if var != "N\\A":
             name = func.replace('i:', '', 1)
-            variables[name] = int(get_num(str(variables[name])))
+            variables[name] = int(float(str(variables[name])))
     # CAST TO FLOAT
     elif func.startswith('f:'):
         var = variables.get(func.replace("f:", '', 1), "N\\A")
         if var != "N\\A":
             name = func.replace('f:', '', 1)
-            variables[name] = float(get_num(str(variables[name])))
+            variables[name] = float((str(variables[name])))
     # ROUND
     elif func.startswith('r:'):
         var = variables.get(func.replace("r:", '', 1), "N\\A")
         if var != "N\\A":
             name = func.replace('r:', '', 1)
-            variables[name] = float(int(get_num(str(variables[name]))))
+            variables[name] = float(int(float(str(variables[name]))))
     # # ADD 1 TO A VARIABLE
     # elif func.endswith('++'):
     #     var = variables.get(func.replace("++", '', 1), "N\\A")
@@ -282,7 +284,7 @@ def calc(text, method_object, markers, variables):
             arg1 = float(arg1)
         elif str(arg1).isnumeric():
             arg1 = int(arg1)
-        variables[args[0]] = arg1 / int(parse_value_full(args[1], method_object, markers, variables))
+        variables[args[0]] = arg1 / try_to_num(parse_value_full(args[1], method_object, markers, variables))
 
 
 def find_marker(name, method, line_num, method_name):
@@ -428,25 +430,46 @@ def resolve(condition, method_object, markers, variables):
                                     )) != str(parse_value_full(condition_split[1], method_object, markers, variables))
     elif condition.count('>=') >= 1:
         condition_split = condition.split('>=', 1)
-        return int(parse_value_full(condition_split[0], method_object, markers, variables
-                                    )) >= int(parse_value_full(condition_split[1], method_object, markers, variables))
+        return try_to_num(parse_value_full(condition_split[0], method_object, markers, variables
+                                    )) >= try_to_num(parse_value_full(condition_split[1], method_object, markers, variables))
     elif condition.count('<=') >= 1:
         condition_split = condition.split('<=', 1)
-        return int(parse_value_full(condition_split[0], method_object, markers, variables
-                                    )) <= int(parse_value_full(condition_split[1], method_object, markers, variables))
+        return try_to_num(parse_value_full(condition_split[0], method_object, markers, variables
+                                    )) <= try_to_num(parse_value_full(condition_split[1], method_object, markers, variables))
     elif condition.count('>') >= 1:
         condition_split = condition.split('>', 1)
-        return int(parse_value_full(condition_split[0], method_object, markers, variables
-                                    )) > int(parse_value_full(condition_split[1], method_object, markers, variables))
+        return try_to_num(parse_value_full(condition_split[0], method_object, markers, variables
+                                    )) > try_to_num(parse_value_full(condition_split[1], method_object, markers, variables))
     elif condition.count('<') >= 1:
         condition_split = condition.split('<', 1)
-        return int(parse_value_full(condition_split[0], method_object, markers, variables
-                                    )) < int(parse_value_full(condition_split[1], method_object, markers, variables))
+        return try_to_num(parse_value_full(condition_split[0], method_object, markers, variables
+                                    )) < try_to_num(parse_value_full(condition_split[1], method_object, markers, variables))
     else:
         return False
 
 
 def parse_value_full(text, method_object, markers, variables):
+    if text.startswith('read:'):
+        text = parse_value_full(text.replace('read:', '', 1), method_object, markers, variables)
+        if path.exists('../'+text):
+            f = open('../'+text, 'r')
+            val = f.read()
+            f.close()
+            return val
+        return False
+    elif text.startswith('read('):
+        line = text.replace('read(', '', 1)
+        text1 = parse_value_full(line, method_object, markers, variables)
+        line = line.replace('\''+text1+'\',', '', 1)
+        text2 = str(parse_value_full(line, method_object, markers, variables))
+        line = line.replace('\''+text2+'\',', '', 1)
+        text3 = str(parse_value_full(replace_last_char(line), method_object, markers, variables))
+        if path.exists('../'+text1):
+            f = open('../'+text1, 'r')
+            val = f.read().split(text2, int(text3)+1)[int(text3)]
+            f.close()
+            return val
+        return False
     if text.startswith('%'):
         text = '%' + str(parse_value_full(text.replace('%', '', 1), method_object, markers, variables))
     for line in text.split():
@@ -514,41 +537,48 @@ def add(text1, text2):
 
 
 def power(text1, text2):
-    if str(text1).isnumeric() and str(text2).isnumeric():
-        return math.pow(int(text1), int(text2))
-    elif str(text1).isdecimal() or str(text2).isdecimal():
-        return math.pow(float(text1), float(text2))
+    if str(try_to_num(text1)) == text1 and str(try_to_num(text2)) == text2:
+        return math.pow(try_to_num(text1), try_to_num(text2))
     raise ArithmeticError('Tried to use power operator on a non number value')
 
 
+def mod(text1, text2):
+    if str(try_to_num(text1)) == text1 and str(try_to_num(text2)) == text2:
+        return try_to_num(text1) % try_to_num(text2)
+    raise ArithmeticError('Tried to use modulus operator on a non number value')
+
+
 def multiply(text1, text2):
-    if str(text1).isnumeric() and str(text2).isnumeric():
-        return int(text1) * int(text2)
-    elif str(text1).isdecimal() or str(text2).isdecimal():
-        return float(text1) * float(text2)
+    if str(try_to_num(text1)) == text1 and str(try_to_num(text2)) == text2:
+        return try_to_num(text1) * try_to_num(text2)
     raise ArithmeticError('Tried to use multiplication operator on a non number value: ' + (text1 + "*" + text2))
 
 
 def divide(text1, text2):
-    if str(text1).isnumeric() and str(text2).isnumeric():
-        return int(text1) / int(text2)
-    elif str(text1).isdecimal() or str(text2).isdecimal():
-        return float(text1) / float(text2)
+    if str(try_to_num(text1)) == text1 and str(try_to_num(text2)) == text2:
+        return try_to_num(text1) / try_to_num(text2)
     raise ArithmeticError('Tried to use division operator on a non number value')
 
 
 def subtract(text1, text2):
-    if type(text1) == number_type:
-        if type(text2) == number_type:
-            return text1 - text2
-    elif str(text1).isnumeric():
-        if str(text2).isnumeric():
-            return int(text1) - int(text2)
+    if str(try_to_num(text1)) == text1 and str(try_to_num(text2)) == text2:
+        return try_to_num(text1) - try_to_num(text2)
+    raise ArithmeticError('Tried to use subtraction operator on a non number value')
 
 
 def parse_string(text):
     if text.startswith('\'') and text.endswith('\''):
-        return replace_last_char(text.replace('\'', '', 1)).replace('\\n', '\n')
+        return replace_last_char(text.replace('\'', '', 1)).replace('\\\\n', '\a').replace('\\n', '\n').replace('"', '\'').replace('\a', '\\n')
+    elif text.startswith('\''):
+        line = ''
+        num = 0
+        for char in text:
+            if char != '\'':
+                line += char
+            else:
+                num = num + 1
+                if num == 2:
+                    return line
     elif text == 'input':
         return input('> ').replace('\\\\', '\\')
     else:
@@ -558,10 +588,8 @@ def parse_string(text):
 def parse_number(text, method_object, markers, variables):
     if text.startswith('-'):
         return -parse_number(text.replace('-', '', 1), method_object, markers, variables)
-    if text.isnumeric():
-        return int(text)
-    elif text.isdecimal():
-        return float(text)
+    if str(try_to_num(text)) == text:
+        return try_to_num(text)
     elif text.count('.') > 0:
         args = text.split('.')
         text1 = get_num(args[0])
@@ -623,7 +651,33 @@ def parse_number(text, method_object, markers, variables):
                     text.count('-') > 0 or \
                     text.count('*') > 0 or \
                     text.count('/') > 0 or \
+                    text.count('%') > 0 or \
                     text.count('^') > 0:
+        while text.count('%') > 0:
+            args = text.split('%', 1)
+            text1 = args[0]
+            text2 = args[1]
+            text1 = text1\
+                .replace('-', ' ')\
+                .replace('+', ' ')\
+                .replace('*', ' ')\
+                .replace('^', ' ')\
+                .replace('/', ' ')\
+                .replace('%', ' ')
+            text2 = text2\
+                .replace('-', ' ')\
+                .replace('+', ' ')\
+                .replace('*', ' ')\
+                .replace('^', ' ')\
+                .replace('/', ' ')\
+                .replace('%', ' ')
+            args = text1.split(' ')
+            text1_2 = args[len(args) - 1]
+            args = text2.split(' ')
+            text2_2 = args[0]
+            text1_3 = parse_value_full(text1_2, method_object, markers, variables)
+            text2_3 = parse_value_full(text2_2, method_object, markers, variables)
+            text = text.replace(str(text1_2) + '%' + str(text2_2), str(mod(str(text1_3), str(text2_3))))
         while text.count('^') > 0:
             args = text.split('^', 1)
             text1 = args[0]

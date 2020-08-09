@@ -8,19 +8,16 @@ def:end,input
 mark:start
     def:fizzorbuzz,0
 
-    //Copy number to a new variable, check
-    def:check,number/3
-    //Round check
-    r:check
+    //Copy number to a new variable, and check if it's a multiple of 3
+    def:check,number%3
 
-    ifNotSkip>3:r:(number/3==check)
+    ifNotSkip>3:r:(0==check)
         saynl:'Fizz'
         m:fizzorbuzz=1
 
-    m:check=number/5
-    r:check
+    m:check=number%5
 
-    ifNotSkip>6:r:(number/5==check)
+    ifNotSkip>6:r:(0==check)
         ifNotSkip>3:r:(fizzorbuzz==0)
             saynl:'Buzz'
         skip:2

@@ -1,4 +1,5 @@
 import time
+import os
 
 from python import executor
 from python import method_loader
@@ -8,12 +9,14 @@ class Mapping:
     names = []
     mapped = ''
     split = ':'
+    postfix = ''
 
-    def __init__(self, names, mapped, split=':') -> None:
+    def __init__(self, names, mapped, split=':', postfix='') -> None:
         super().__init__()
         self.names = names
         self.mapped = mapped
         self.split = split
+        self.postfix = postfix
 
 
 class Function:
@@ -37,7 +40,9 @@ mapper = [
     Mapping(['goBack', 'rewind'], 'rw:'),
     Mapping(['waitSeconds', 'sleepSeconds'], 'ws:'),
     Mapping(['py', 'pyExec', 'pyexec', 'execPy', 'execpy'], 'py:'),
-    Mapping(['pyFile', 'pyFi', 'pyfile', 'pyfi'], 'pyfi:')
+    Mapping(['pyFile', 'pyFi', 'pyfile', 'pyfi'], 'pyfi:'),
+    Mapping(['say'], 'sayAndParse:'),
+    Mapping(['saynl'], 'sayAndParsenl:')
 ]
 
 
@@ -55,8 +60,8 @@ def remap(input_func):
         for name in mapping.names:
             if name == input_func.split(mapping.split, 1)[0]:
                 if mapping.split == 'N\\A':
-                    return mapping.mapped
-                return mapping.mapped + input_func.split(mapping.split, 1)[1]
+                    return mapping.mapped+mapping.postfix
+                return mapping.mapped + input_func.split(mapping.split, 1)[1]+mapping.postfix
     if input_func.endswith('--'):
         input_func = 'm:' + input_func.replace('-', '') + '-' + str((input_func.count('-') - 1))
     elif input_func.endswith('++'):
@@ -69,19 +74,22 @@ def register_mapping(names, mapping, splitter=':'):
 
 
 def run_line(func, args, method, line, method_object, markers, variables):
+    # EXECUTE RAW PYTHON CODE
     if func == 'py':
         exec(args.replace('\\n', '\n'))
         return line + 1
+    # EXECUTE A PYTHON FILE
     elif func == 'pyfi':
         file = open(args)
         command = file.read()
         exec(command)
         file.close()
         return line + 1
+    # WAIT
     elif func == 'w':
         time.sleep(float(executor.parse_value(args, method_object, markers, variables)) / 1000)
         return line + 1
-        # WAIT SECONDS
+    # WAIT SECONDS
     elif func == 'ws':
         time.sleep(int(executor.parse_value(args, method_object, markers, variables)))
         return line + 1
@@ -98,13 +106,17 @@ def run_line(func, args, method, line, method_object, markers, variables):
         executor.parse_value_full(func.replace('runVal:', '', 1), method_object, markers, variables)
         return line + 1
     # SAY
-    elif func == 'say':
-        print(args.replace("'", "", 2))
-        return line + 1
+    # @deprecated
+    # use sayAndParse instead
+    # elif func == 'say':
+    #     print(args.replace("'", "", 2))
+    #     return line + 1
     # SAY NO RETURN
-    elif func == 'saynl':
-        print(args.replace("'", "", 2), end='')
-        return line + 1
+    # @deprecated
+    # use sayAndParsenl instead
+    # elif func == 'saynl':
+    #     print(args.replace("'", "", 2), end='')
+    #     return line + 1
     # SAY VALUE
     elif func == 'sayAndParse':
         print(executor.parse_value_full(args, method_object, markers, variables))
@@ -129,6 +141,29 @@ def run_line(func, args, method, line, method_object, markers, variables):
     elif func == 'callWithVars':
         method_loader.load_or_get(args).execute(variables=variables)
         return line + 1
+    elif func == 'append':
+        argslist = args.split(':', 1)
+        f = open("../"+str(executor.parse_value_full(argslist[0], method_object, markers, variables)), 'a')
+        f.write(str(executor.parse_value_full(argslist[1], method_object, markers, variables)))
+        f.close()
+    elif func == 'write':
+        argslist = args.split(':', 1)
+        fi = "../"+executor.parse_value_full(argslist[0], method_object, markers, variables)
+        if not os.path.exists(fi):
+            fi2 = fi
+            while not fi2.endswith('/'):
+                fi2 = executor.replace_last_char(fi2)
+            fi2 = executor.replace_last_char(fi2)
+            if not os.path.exists(fi2):
+                os.makedirs(fi2)
+        f = open(fi, 'w')
+        f.write(str(executor.parse_value_full(argslist[1], method_object, markers, variables)))
+        f.close()
+    elif func == 'read':
+        argslist = args.split(':', 1)
+        f = open("../"+executor.parse_value_full(argslist[0], method_object, markers, variables), 'r')
+        print(f.read(executor.parse_value_full(argslist[1], method_object, markers, variables)))
+        f.close()
     else:
         for function in functions:
             if function.name == func:

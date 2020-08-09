@@ -1,0 +1,16 @@
+write:'hello.txt':'test'
+append:'hello.txt':'\ntest2'
+//append:'hello.txt':'\n'
+//append:'hello.txt':20%40
+//append:'hello.txt':'\n'
+//append:'hello.txt':40%20
+def:index,0
+def:end,30
+append:'hello.txt':'\nloop_start\n'
+mark:loop
+    append:'hello.txt':index
+    ifSkip>2:r:(index>=end)
+        append:'hello.txt':','
+    index++
+ifGotoMarker>loop:r:(index<=end)
+append:'hello.txt':'\nloop_end'

@@ -13,3 +13,10 @@ sayAndParse:1*hello*5
 sayAndParse:hello+1*hello*5
 
 destroy:hello
+
+say:'Modulus'
+
+sayAndParse:30%4
+sayAndParse:30%'4'
+sayAndParse:2%3
+sayAndParse:2%4

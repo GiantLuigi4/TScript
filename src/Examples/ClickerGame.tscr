@@ -1,0 +1,74 @@
+//So to make up for the lack of lists, there's a basic implementation of native csv support.
+sayAndParse:'check existing'
+def:progress,read:'progress.csv'
+m:progress+''
+sayAndParse:progress
+
+ifSkip>3:r:(currency=='False')
+    sayAndParse:'Writing'
+    write:'progress.csv':'0,0,0,0'
+
+destroy:progress
+def:progress,read:'progress.csv'
+sayAndParse:progress
+destroy:progress
+
+def:currency,read('progress.csv',',',0)
+def:clickers,read('progress.csv',',',1)
+def:buyers,read('progress.csv',',',2)
+def:rebirths,read('progress.csv',',',3)
+
+sayAndParse:'read'
+sayAndParsenl:currency
+sayAndParsenl:','
+sayAndParsenl:clickers
+sayAndParsenl:','
+sayAndParsenl:buyers
+sayAndParsenl:','
+sayAndParsenl:rebirths
+sayAndParsenl:'\n'
+
+i:currency
+i:clickers
+i:buyers
+i:rebirths
+
+def:lastBuy,time:nano
+mark:loop
+    def:in,input
+    ifGotoMarker>end_CalcLastAutoPurchase:r:(clickers==0)
+        def:clickersWorking,1000
+        i:clickers
+        m:clickersWorking/clickers
+        i:clickersWorking
+        ifNotSkip>2:r:(clickersWorking<=0)
+            m:clickersWorking=1
+        m:lastBuy/clickersWorking
+        m:lastBuy/100000000
+        destroy:clickersWorking
+        i:lastBuy
+        i:currency
+        ifSkip>7:r:(lastBuy<=0)
+            m:currency+lastBuy
+        unmark:end_CalcLastAutoPurchase
+    mark:end_CalcLastAutoPurchase
+
+    m:lastBuy=time:nano
+    ifGotoMarker>end:r:(in=='end')
+    ifNotSkip>2:r:(in=='click')
+        m:currency+1
+gotoMark:loop
+mark:end
+
+sayAndParse:'Saving'
+def:file_text,currency
+m:file_text+','
+m:file_text+clickers
+m:file_text+','
+m:file_text+buyers
+m:file_text+','
+m:file_text+rebirths
+write:'progress.csv':file_text
+sayAndParse:'Saved'
+
+gotoEnd
